@@ -1,6 +1,7 @@
 package gitops
 
 import (
+	"errors"
 	"gosh/log"
 	"gosh/util"
 	"path/filepath"
@@ -11,6 +12,8 @@ const (
 	releasesPath = kapitanClassesPath + "releases"
 )
 
+var InvalidFullReleaseNameErr = errors.New("invalid release name, muse be 'type/name'")
+
 type Release struct {
 	Type     ReleaseType
 	Name     string
@@ -19,6 +22,19 @@ type Release struct {
 
 func NewRelease(name string, releaseType ReleaseType) *Release {
 	return &Release{Name: name, Type: releaseType, Versions: map[string]string{}}
+}
+
+func NewReleaseFromFullName(fullName string) (*Release, error) {
+	parts := strings.Split(fullName, "/")
+	if len(parts) != 2 {
+		return nil, InvalidFullReleaseNameErr
+	}
+	name := parts[1]
+	if t, err := NewReleaseType(parts[0]); err == nil {
+		return NewRelease(name, t), nil
+	} else {
+		return nil, log.Errf(err, "Unsupported release type", parts[0])
+	}
 }
 
 func (release *Release) Read() error {
@@ -47,6 +63,14 @@ func (release *Release) mapFromKapitanFile(f *kapitanFile) {
 		}
 	}
 	log.Tracef("Mapped release %s from kapitan file, result: %+v", release.Name, release)
+}
+
+func (release *Release) versions() map[string]string {
+	return release.Versions
+}
+
+func (release *Release) GetVersions(group string, app string) map[string]string {
+	return GetVersions(release, group, app)
 }
 
 func (release *Release) Exists() bool {

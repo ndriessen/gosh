@@ -72,6 +72,28 @@ func (suite *ReleaseSuite) TestRead() {
 	r.Equal("3.0.0", release.Versions["app3"])
 }
 
+func (suite *ReleaseSuite) TestNewReleaseFromFullNameInvalidName() {
+	_, err := gitops.NewReleaseFromFullName("invalid")
+	r := suite.Require()
+	r.NotNil(err)
+	r.Equal(gitops.InvalidFullReleaseNameErr, err)
+}
+
+func (suite *ReleaseSuite) TestNewReleaseFromFullNameInvalidType() {
+	_, err := gitops.NewReleaseFromFullName("invalid/release")
+	r := suite.Require()
+	r.NotNil(err)
+	r.Equal(gitops.UnsupportedReleaseTypeErr, err)
+}
+
+func (suite *ReleaseSuite) TestNewReleaseFromFullName() {
+	release, err := gitops.NewReleaseFromFullName("product/release")
+	r := suite.Require()
+	r.Nil(err)
+	r.Equal(gitops.ProductRelease, release.Type)
+	r.Equal("release", release.Name)
+}
+
 func TestReleaseTestSuite(t *testing.T) {
 	suite.Run(t, new(ReleaseSuite))
 }

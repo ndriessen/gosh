@@ -46,6 +46,14 @@ func (stage *Stage) mapFromKapitanFile(f *kapitanFile) {
 	log.Tracef("Mapped stage %s from kapitan file, result: %+v", stage.Name, stage)
 }
 
+func (stage *Stage) versions() map[string]string {
+	return stage.Versions
+}
+
+func (stage *Stage) GetVersions(group string, app string) map[string]string {
+	return GetVersions(stage, group, app)
+}
+
 func (stage *Stage) Exists() bool {
 	return Exists(stage)
 }

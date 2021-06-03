@@ -6,7 +6,10 @@ import (
 	"os"
 )
 
+type ResourceList func() ([]*Resource, error)
+
 type Resource interface {
+	Read() error
 	Exists() bool
 	GetFilePath() string
 	mapFromKapitanFile(f *kapitanFile)

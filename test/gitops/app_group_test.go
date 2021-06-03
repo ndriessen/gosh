@@ -4,41 +4,20 @@ import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
 	"gosh/gitops"
+	"gosh/test"
 	"gosh/util"
-	"os"
 	"path/filepath"
 	"testing"
 )
 
-const testAppGroupFileContents = `
-classes:
-  - apps.test.app1
-  - apps.test.app2
-parameters:
-  test:
-    prop1: value1
-    prop2:
-      nested1: value2
-  other:
-    props:
-    - array
-
-`
-
-// Define the suite, and absorb the built-in basic suite
-// functionality from testify - including assertion methods.
 type AppGroupSuite struct {
 	suite.Suite
 	TestAppGroupName string
 }
 
-// Make sure that VariableThatShouldStartAtFive is set to five
-// before each test
 func (suite *AppGroupSuite) SetupSuite() {
-	dir := filet.TmpDir(suite.T(), "")
-	util.Context.WorkingDir = dir
-	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test")
-	_ = os.MkdirAll(p, 0755)
+	test.SetupWorkingDir(suite.Suite)
+	test.CreateTestAppGroup(suite.Suite, "test")
 }
 
 func (suite *AppGroupSuite) TearDownSuite() {
@@ -75,8 +54,6 @@ func (suite *AppGroupSuite) TestCreate() {
 }
 
 func (suite *AppGroupSuite) TestRead() {
-	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test.yml")
-	filet.File(suite.T(), f, testAppGroupFileContents)
 	group := gitops.NewAppGroup("test")
 	err := group.Read()
 	r := suite.Require()

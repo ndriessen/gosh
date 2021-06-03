@@ -59,6 +59,11 @@ func CheckErr(err error, args ...interface{}) error {
 	return err
 }
 
+func Fatal(err error, msg string, args ...interface{}) {
+	log.Fatal().Err(err).Msgf(msg, args...)
+	os.Exit(1)
+}
+
 func init() {
 	zerolog.CallerSkipFrameCount = 3
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.Kitchen}
