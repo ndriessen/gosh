@@ -31,7 +31,7 @@ func NewAppGroup(name string, apps ...*App) *AppGroup {
 
 func (group *AppGroup) Create() error {
 	log.Trace("Create app group with input: %i", group)
-	if !validStruct(group) {
+	if group == nil || !group.isValid() {
 		return log.Err(ValidationErr, "Invalid app group struct, use NewAppGroup() to create one")
 	}
 	if group.Exists() {
@@ -78,21 +78,7 @@ func (group *AppGroup) mapFromKapitanFile(f *kapitanFile) {
 }
 
 func (group *AppGroup) Read() error {
-	log.Tracef("Read app group with input: %i", group)
-	if !validStruct(group) {
-		return log.Err(ValidationErr, "Invalid app group struct, use NewAppGroup() to create one")
-	}
-	if !group.Exists() {
-		return log.Errf(AppGroupDoesNotExistErr, "The app group '%s' does not exist", group.Name)
-	}
-	if f, err := ReadKapitanFile(group.GetFilePath()); err == nil {
-		group.mapFromKapitanFile(f)
-		log.Tracef("Read app group, result: %i", group)
-		log.Infof("Read app group '%s'", group.Name)
-		return nil
-	} else {
-		return log.Errf(err, "Could not read app group '%s' file", group.Name)
-	}
+	return Read(group)
 }
 
 func (group *AppGroup) Update() error {
@@ -120,6 +106,14 @@ func (group *AppGroup) GetFilePath() string {
 	return filepath.Join(util.Context.WorkingDir, appGroupPath, group.Name+kapitanFileExt)
 }
 
-func validStruct(group *AppGroup) bool {
-	return group != nil && strings.TrimSpace(group.Name) != ""
+func (group *AppGroup) isValid() bool {
+	return strings.TrimSpace(group.Name) != ""
+}
+
+func (group *AppGroup) getResourceType() string {
+	return "app group"
+}
+
+func (group *AppGroup) getResourceName() string {
+	return group.Name
 }

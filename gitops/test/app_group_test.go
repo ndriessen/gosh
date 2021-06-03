@@ -47,17 +47,20 @@ func (suite *AppGroupSuite) TearDownSuite() {
 
 func (suite *AppGroupSuite) TestNewAppGroup() {
 	group := gitops.NewAppGroup("test")
-	suite.Equal("test", group.Name)
+	r := suite.Require()
+	r.Equal("test", group.Name)
 }
 
 func (suite *AppGroupSuite) TestGetFilePath() {
 	group := gitops.NewAppGroup("test")
-	suite.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test.yml"), group.GetFilePath())
+	r := suite.Require()
+	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test.yml"), group.GetFilePath())
 }
 
 func (suite *AppGroupSuite) TestGetFolderPath() {
 	group := gitops.NewAppGroup("test")
-	suite.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test"), group.GetFolderPath())
+	r := suite.Require()
+	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test"), group.GetFolderPath())
 }
 
 func (suite *AppGroupSuite) TestCreate() {
