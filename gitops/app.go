@@ -15,7 +15,7 @@ type App struct {
 }
 
 func NewApp(name string, group *AppGroup) *App {
-	return &App{Name: name, group: group}
+	return &App{Name: name, group: group, Properties: map[string]string{}}
 }
 
 func FindApp(name string) (app *App, err error) {

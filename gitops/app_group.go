@@ -26,6 +26,9 @@ type AppGroup struct {
 
 // NewAppGroup /** Constructor for an AppGroup type
 func NewAppGroup(name string, apps ...*App) *AppGroup {
+	if apps == nil {
+		apps = []*App{}
+	}
 	return &AppGroup{Name: name, Apps: apps}
 }
 
