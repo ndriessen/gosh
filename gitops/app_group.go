@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	appGroupPath = kapitanClassesPath + "app"
-	appPrefix    = "app."
+	appGroupPath = kapitanClassesPath + "apps"
+	appPrefix    = "apps."
 )
 
 var (
@@ -33,7 +33,7 @@ func NewAppGroup(name string, apps ...*App) *AppGroup {
 }
 
 func (group *AppGroup) Create() error {
-	log.Trace("Create app group with input: %i", group)
+	log.Tracef("Create app group with input: %+v", group)
 	if group == nil || !group.isValid() {
 		return log.Err(ValidationErr, "Invalid app group struct, use NewAppGroup() to create one")
 	}
@@ -49,22 +49,22 @@ func (group *AppGroup) Create() error {
 			return log.Errf(err, "Error writing app group file '%s'", group.GetFilePath())
 		}
 	} else {
-		return log.Err(err, "Error creating app group folder '%s'", group.GetFolderPath())
+		return log.Errf(err, "Error creating app group folder '%s'", group.GetFolderPath())
 	}
 }
 
 func (group *AppGroup) mapToKapitanFile() *kapitanFile {
-	log.Tracef("Mapping group %s to kapitan file: %i", group.Name, group)
+	log.Tracef("Mapping group %s to kapitan file: %+v", group.Name, group)
 	f := &kapitanFile{}
 	for _, app := range group.Apps {
-		f.Classes = append(f.Classes, "app."+group.Name+"."+app.Name)
+		f.Classes = append(f.Classes, appPrefix+group.Name+"."+app.Name)
 	}
-	log.Tracef("Mapped group %s to kapitan file, result: %i", group.Name, f)
+	log.Tracef("Mapped group %s to kapitan file, result: %+v", group.Name, f)
 	return f
 }
 
 func (group *AppGroup) mapFromKapitanFile(f *kapitanFile) {
-	log.Tracef("Mapping group %s from kapitan file %i", group.Name, f)
+	log.Tracef("Mapping group %s from kapitan file %+v", group.Name, f)
 	for _, class := range f.Classes {
 		app := &App{
 			Name:  strings.TrimPrefix(class, appPrefix+group.Name+"."),
@@ -77,7 +77,7 @@ func (group *AppGroup) mapFromKapitanFile(f *kapitanFile) {
 		//}
 		group.Apps = append(group.Apps, app)
 	}
-	log.Tracef("Mapped group %s from kapitan file, result: %i", group.Name, group)
+	log.Tracef("Mapped group %s from kapitan file, result: %+v", group.Name, group)
 }
 
 func (group *AppGroup) Read() error {

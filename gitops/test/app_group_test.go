@@ -12,8 +12,8 @@ import (
 
 const testAppGroupFileContents = `
 classes:
-  - app.test.app1
-  - app.test.app2
+  - apps.test.app1
+  - apps.test.app2
 parameters:
   test:
     prop1: value1
@@ -37,7 +37,7 @@ type AppGroupSuite struct {
 func (suite *AppGroupSuite) SetupSuite() {
 	dir := filet.TmpDir(suite.T(), "")
 	util.Context.WorkingDir = dir
-	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test")
+	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test")
 	_ = os.MkdirAll(p, 0755)
 }
 
@@ -54,13 +54,13 @@ func (suite *AppGroupSuite) TestNewAppGroup() {
 func (suite *AppGroupSuite) TestGetFilePath() {
 	group := gitops.NewAppGroup("test")
 	r := suite.Require()
-	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test.yml"), group.GetFilePath())
+	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test.yml"), group.GetFilePath())
 }
 
 func (suite *AppGroupSuite) TestGetFolderPath() {
 	group := gitops.NewAppGroup("test")
 	r := suite.Require()
-	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test"), group.GetFolderPath())
+	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test"), group.GetFolderPath())
 }
 
 func (suite *AppGroupSuite) TestCreate() {
@@ -70,12 +70,12 @@ func (suite *AppGroupSuite) TestCreate() {
 	r := suite.Require()
 	r.Nil(err)
 	r.Len(f.Classes, 2)
-	r.Equal("app.my-group.app1", f.Classes[0])
-	r.Equal("app.my-group.app2", f.Classes[1])
+	r.Equal("apps.my-group.app1", f.Classes[0])
+	r.Equal("apps.my-group.app2", f.Classes[1])
 }
 
 func (suite *AppGroupSuite) TestRead() {
-	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test.yml")
+	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test.yml")
 	filet.File(suite.T(), f, testAppGroupFileContents)
 	group := gitops.NewAppGroup("test")
 	err := group.Read()

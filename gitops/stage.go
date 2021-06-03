@@ -25,25 +25,25 @@ func (stage *Stage) Read() error {
 }
 
 func (stage *Stage) mapToKapitanFile() *kapitanFile {
-	log.Tracef("Mapping stage %s to kapitan file: %i", stage.Name, stage)
+	log.Tracef("Mapping stage %s to kapitan file: %+v", stage.Name, stage)
 	f := &kapitanFile{}
 	props := f.Parameters[stage.Name].(map[string]interface{})
 	for key, value := range stage.Versions {
 		props[key] = value
 	}
-	log.Tracef("Mapped stage %s to kapitan file, result: %i", stage.Name, f)
+	log.Tracef("Mapped stage %s to kapitan file, result: %+v", stage.Name, f)
 	return f
 }
 
 func (stage *Stage) mapFromKapitanFile(f *kapitanFile) {
-	log.Tracef("Mapping stage %s from kapitan file %i", stage.Name, f)
+	log.Tracef("Mapping stage %s from kapitan file %+v", stage.Name, f)
 	stage.Versions = make(map[string]string, 0)
 	if properties, exists := f.Parameters[stage.Name]; exists {
 		for key, value := range properties.(map[interface{}]interface{}) {
 			stage.Versions[key.(string)] = value.(string)
 		}
 	}
-	log.Tracef("Mapped stage %s from kapitan file, result: %i", stage.Name, stage)
+	log.Tracef("Mapped stage %s from kapitan file, result: %+v", stage.Name, stage)
 }
 
 func (stage *Stage) Exists() bool {

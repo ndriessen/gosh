@@ -44,25 +44,25 @@ func (app *App) Read() error {
 }
 
 func (app *App) mapToKapitanFile() *kapitanFile {
-	log.Tracef("Mapping app %s to kapitan file: %i", app.Name, app)
+	log.Tracef("Mapping app %s to kapitan file: %+v", app.Name, app)
 	f := &kapitanFile{}
 	props := f.Parameters[app.Name].(map[string]interface{})
 	for key, value := range app.Properties {
 		props[key] = value
 	}
-	log.Tracef("Mapped app %s to kapitan file, result: %i", app.Name, f)
+	log.Tracef("Mapped app %s to kapitan file, result: %+v", app.Name, f)
 	return f
 }
 
 func (app *App) mapFromKapitanFile(f *kapitanFile) {
-	log.Tracef("Mapping app %s from kapitan file %i", app.Name, f)
+	log.Tracef("Mapping app %s from kapitan file %+v", app.Name, f)
 	app.Properties = make(map[string]string, 0)
 	if properties, exists := f.Parameters[app.Name]; exists {
 		for key, value := range properties.(map[interface{}]interface{}) {
 			app.Properties[key.(string)] = value.(string)
 		}
 	}
-	log.Tracef("Mapped app %s from kapitan file, result: %i", app.Name, app)
+	log.Tracef("Mapped app %s from kapitan file, result: %+v", app.Name, app)
 }
 
 func (app *App) Exists() bool {

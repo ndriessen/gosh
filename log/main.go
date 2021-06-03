@@ -11,50 +11,50 @@ import (
 var log zerolog.Logger
 
 func Trace(msg ...interface{}) {
-	log.Trace().Msg(fmt.Sprint(msg))
+	log.Trace().Msg(fmt.Sprint(msg...))
 }
 
 func Tracef(msg string, args ...interface{}) {
-	log.Trace().Msgf(msg, args)
+	log.Trace().Msgf(msg, args...)
 }
 
 func Debug(msg ...interface{}) {
-	log.Debug().Msg(fmt.Sprint(msg))
+	log.Debug().Msg(fmt.Sprint(msg...))
 }
 
 func Debugf(msg string, args ...interface{}) {
-	log.Debug().Msgf(msg, args)
+	log.Debug().Msgf(msg, args...)
 }
 
 func Info(msg ...interface{}) {
-	log.Info().Msg(fmt.Sprint(msg))
+	log.Info().Msg(fmt.Sprint(msg...))
 }
 
 func Infof(msg string, args ...interface{}) {
-	log.Info().Msgf(msg, args)
+	log.Info().Msgf(msg, args...)
 }
 
 func Warn(msg ...interface{}) {
-	log.Warn().Msg(fmt.Sprint(msg))
+	log.Warn().Msg(fmt.Sprint(msg...))
 }
 
 func Warnf(msg string, args ...interface{}) {
-	log.Warn().Msgf(msg, args)
+	log.Warn().Msgf(msg, args...)
 }
 
 func Err(err error, msg ...interface{}) error {
-	log.Error().Err(err).Msg(fmt.Sprint(msg))
+	log.Error().Err(err).Msg(fmt.Sprint(msg...))
 	return err
 }
 
 func Errf(err error, msg string, args ...interface{}) error {
-	log.Error().Err(err).Msgf(msg, args)
+	log.Error().Err(err).Msgf(msg, args...)
 	return err
 }
 
 func CheckErr(err error, args ...interface{}) error {
 	if err != nil {
-		log.Error().Err(err).Msg(fmt.Sprint(args))
+		log.Error().Err(err).Msg(fmt.Sprint(args...))
 	}
 	return err
 }

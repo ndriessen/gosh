@@ -60,7 +60,7 @@ func (suite *AppSuite) SetupSuite() {
 	dir := filet.TmpDir(suite.T(), "")
 	util.Context.WorkingDir = dir
 	suite.appGroup = &gitops.AppGroup{Name: "test"}
-	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test")
+	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test")
 	_ = os.MkdirAll(p, 0755)
 }
 
@@ -71,7 +71,7 @@ func (suite *AppSuite) TearDownSuite() {
 func (suite *AppSuite) TestGetFilePath() {
 	app := gitops.NewApp("app1", suite.appGroup)
 	r := suite.Require()
-	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test/app1.yml"), app.GetFilePath())
+	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test/app1.yml"), app.GetFilePath())
 }
 
 func (suite *AppSuite) TestReadInvalidStructReturnValidationErr() {
@@ -83,7 +83,7 @@ func (suite *AppSuite) TestReadInvalidStructReturnValidationErr() {
 }
 
 func (suite *AppSuite) TestRead() {
-	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test/app1.yml")
+	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test/app1.yml")
 	filet.File(suite.T(), f, testAppFileContents)
 	app := gitops.NewApp("app1", suite.appGroup)
 	err := app.Read()
@@ -94,7 +94,7 @@ func (suite *AppSuite) TestRead() {
 }
 
 func (suite *AppSuite) TestFindApp() {
-	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/app/test/app2.yml")
+	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test/app2.yml")
 	filet.File(suite.T(), f, testAppFileContents)
 	app, err := gitops.FindApp("app2")
 	r := suite.Require()
