@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	defaultAppTemplateContents = `classes:
-parameters:
+	defaultAppTemplateContents = `parameters:
   {{.Name}}:
     app_name: {{.Name}}
     version: latest
