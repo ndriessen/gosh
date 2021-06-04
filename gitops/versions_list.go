@@ -1,37 +1,33 @@
 package gitops
 
-import "gosh/log"
+import (
+	"gosh/log"
+)
 
 type VersionsList interface {
+	getResourceName() string
 	GetVersions(group string, app string) map[string]string
+	GetArtifacts(group string, app string, artifactType string) (map[string]string, error)
 	versions() map[string]string
 }
 
 func GetVersions(list VersionsList, group string, app string) map[string]string {
-	if group != "" && app != "" {
-		log.Warn("Both group and app filters are supplied... ignoring group filter")
-	}
-	var filterApps []string
-	if app != "" {
-		filterApps = append(filterApps, app)
-	} else {
-		if group != "" {
-			g := NewAppGroup(group)
-			if err := g.Read(); err == nil && g.Exists() {
-				for _, a := range g.Apps {
-					filterApps = append(filterApps, a.Name)
+	return filterList(list.versions(), group, app)
+}
+
+func GetArtifacts(list VersionsList, group string, app string, artifactType string) (artifacts map[string]string, err error) {
+	versions := filterList(list.versions(), group, app)
+	artifacts = map[string]string{}
+	for k, v := range versions {
+		if app, err := FindApp(k); err == nil {
+			if err = app.Read(); err == nil {
+				if artifact, err := app.GetArtifact(list, v, artifactType); err == nil {
+					artifacts[k] = artifact
+				} else {
+					return nil, log.Errf(err, "could not get artifact for app %s", app.Name)
 				}
 			}
 		}
 	}
-	if filterApps != nil && len(filterApps) > 0 {
-		filtered := map[string]string{}
-		for _, a := range filterApps {
-			if v, exists := list.versions()[a]; exists {
-				filtered[a] = v
-			}
-		}
-		return filtered
-	}
-	return list.versions()
+	return
 }

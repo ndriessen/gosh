@@ -21,9 +21,13 @@ parameters:
     chart_ref: master
     type: PLATFORM
     groupId: com.trendminer.assets
-    artifactId: app1
-    artifactType: zip
-    artifactClassifier: dist
+    ignored:
+      nested:
+      - item1
+      - item2
+    artifacts:
+      maven: "{{gosh:repo:maven}}/tm-assets:{{gosh:version}}"
+      docker: "{{gosh:repo:docker}}/tm-assets:{{gosh:version}}"
   kapitan:
     vars:
       app_name: ${app1:app_name}
@@ -89,8 +93,8 @@ func (suite *AppSuite) TestRead() {
 	err := app.Read()
 	r := suite.Require()
 	r.Nil(err)
-	r.Len(app.Properties, 9)
-	r.Equal("app1", app.Properties["artifactId"])
+	r.Len(app.Properties, 6)
+	r.Equal("app1", app.Properties["app_name"])
 }
 
 func (suite *AppSuite) TestFindApp() {

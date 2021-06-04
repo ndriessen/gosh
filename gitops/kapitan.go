@@ -11,7 +11,7 @@ import (
 
 type kapitanFile struct {
 	Classes    []string
-	Parameters map[string]interface{}
+	Parameters map[interface{}]interface{}
 }
 
 const (

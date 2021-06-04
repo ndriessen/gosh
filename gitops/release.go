@@ -73,6 +73,10 @@ func (release *Release) GetVersions(group string, app string) map[string]string 
 	return GetVersions(release, group, app)
 }
 
+func (release *Release) GetArtifacts(group string, app string, artifactType string) (map[string]string, error) {
+	return GetArtifacts(release, group, app, artifactType)
+}
+
 func (release *Release) Exists() bool {
 	return Exists(release)
 }

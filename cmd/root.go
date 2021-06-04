@@ -24,6 +24,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("workdir", "w", "", "specify the working directory for gosh (default: $PWD)")
 
 	cobra.OnInitialize(handleGlobalFlags)
+	cobra.OnInitialize(util.InitializeConfig)
 }
 
 func Execute() error {
@@ -32,17 +33,19 @@ func Execute() error {
 }
 
 func handleGlobalFlags() {
-	if wd := GetStringFlag(rootCmd, "workdir", ""); wd != "" {
-		log.Debugf("Setting workdir from flag: %s", os.ExpandEnv(wd))
-		util.Context.WorkingDir = os.ExpandEnv(wd)
-	}
 	zerolog.SetGlobalLevel(zerolog.FatalLevel)
 	if verbose := GetBoolFlag(rootCmd, "verbose", false); verbose {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.SetDetailedLogging()
 		log.Debug("Enabling verbose logging")
 	}
 	if trace := GetBoolFlag(rootCmd, "trace", false); trace {
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		log.SetDetailedLogging()
 		log.Tracef("Enabling tracing")
+	}
+	if wd := GetStringFlag(rootCmd, "workdir", ""); wd != "" {
+		log.Debugf("Setting workdir from flag: %s", os.ExpandEnv(wd))
+		util.Context.WorkingDir = os.ExpandEnv(wd)
 	}
 }

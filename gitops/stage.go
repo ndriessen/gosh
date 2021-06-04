@@ -54,6 +54,10 @@ func (stage *Stage) GetVersions(group string, app string) map[string]string {
 	return GetVersions(stage, group, app)
 }
 
+func (stage *Stage) GetArtifacts(group string, app string, artifactType string) (map[string]string, error) {
+	return GetArtifacts(stage, group, app, artifactType)
+}
+
 func (stage *Stage) Exists() bool {
 	return Exists(stage)
 }

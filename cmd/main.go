@@ -29,17 +29,17 @@ func AddReleaseFlag(cmd *cobra.Command) {
 }
 
 func AddGroupFlag(cmd *cobra.Command) {
-	cmd.Flags().StringP(GroupFlag, "d", "", "--group|-g GROUP")
+	cmd.Flags().StringP(GroupFlag, "g", "", "--group|-g GROUP")
 }
 
 func AddOutputFlag(cmd *cobra.Command) {
-	cmd.Flags().StringP(OutputFlag, "o", "", "--output|-o yaml|properties (default: yaml)")
+	cmd.Flags().StringP(OutputFlag, "o", "yaml", "--output|-o yaml|properties (default: yaml)")
 }
 
 func GetStringFlag(cmd *cobra.Command, name string, defaultValue string) string {
-	if value, err := cmd.Flags().GetString(name); err == nil {
+	if value, err := cmd.Flags().GetString(name); err == nil && value != "" {
 		return value
-	} else if value, err = cmd.PersistentFlags().GetString(name); err == nil {
+	} else if value, err = cmd.PersistentFlags().GetString(name); err == nil && value != "" {
 		return value
 	}
 	return defaultValue

@@ -1,6 +1,7 @@
 package gitops
 
 import (
+	"errors"
 	"gosh/log"
 	"gosh/util"
 	"io/fs"
@@ -8,9 +9,14 @@ import (
 	"strings"
 )
 
+var (
+	NoSuchArtifactErr = errors.New("no such artifact")
+)
+
 type App struct {
 	Name       string
 	Properties map[string]string
+	Artifacts  map[string]string
 	group      *AppGroup
 }
 
@@ -57,9 +63,21 @@ func (app *App) mapToKapitanFile() *kapitanFile {
 func (app *App) mapFromKapitanFile(f *kapitanFile) {
 	log.Tracef("Mapping app %s from kapitan file %+v", app.Name, f)
 	app.Properties = make(map[string]string, 0)
+	app.Artifacts = make(map[string]string, 0)
 	if properties, exists := f.Parameters[app.Name]; exists {
 		for key, value := range properties.(map[interface{}]interface{}) {
-			app.Properties[key.(string)] = value.(string)
+			if key == "artifacts" {
+				for t, u := range properties.(map[interface{}]interface{})[key].(map[interface{}]interface{}) {
+					app.Artifacts[t.(string)] = u.(string)
+				}
+			} else {
+				switch value.(type) {
+				case string:
+					app.Properties[key.(string)] = value.(string)
+				default:
+					log.Warnf("app definition '%s' has nested key '%s', not mapping", app.Name, key.(string))
+				}
+			}
 		}
 	}
 	log.Tracef("Mapped app %s from kapitan file, result: %+v", app.Name, app)
@@ -83,4 +101,35 @@ func (app *App) getResourceType() string {
 
 func (app *App) getResourceName() string {
 	return app.Name
+}
+
+func (app *App) GetArtifact(list VersionsList, version string, artifactType string) (string, error) {
+	if app.Artifacts != nil {
+		if value, exists := app.Artifacts[artifactType]; exists {
+			if replacements, err := buildReplacementMap(list, version); err == nil {
+				for find, replace := range replacements {
+					value = strings.ReplaceAll(value, find, replace)
+				}
+				return value, nil
+			} else {
+				return "", log.Errf(errors.New("error replacing gosh placeholder in artifact"), "Could not generate artifact list")
+			}
+		}
+	}
+	return "", NoSuchArtifactErr
+}
+
+func buildReplacementMap(list VersionsList, version string) (map[string]string, error) {
+	result := map[string]string{}
+	for t, urls := range util.Config.ArtifactRepositories {
+		if v, exists := urls[strings.ToLower(list.getResourceName())]; exists {
+			result["{{gosh:repo:"+t+"}}"] = v
+		} else if v, exists = urls["default"]; exists {
+			result["{{gosh:repo:"+t+"}}"] = v
+		} else {
+			return nil, log.Errf(errors.New("No default repository set for type "+t), "could not generate artifacts")
+		}
+	}
+	result["{{gosh:version}}"] = version
+	return result, nil
 }
