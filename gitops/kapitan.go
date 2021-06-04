@@ -24,6 +24,13 @@ var (
 	resourceNotFoundErr = errors.New("resource not found")
 )
 
+func newKapitanFile() *kapitanFile {
+	return &kapitanFile{
+		Classes:    []string{},
+		Parameters: map[interface{}]interface{}{},
+	}
+}
+
 func fileExists(filePath string) bool {
 	f, err := os.Stat(filePath)
 	return err == nil && !f.IsDir()

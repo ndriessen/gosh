@@ -97,6 +97,36 @@ func (suite *AppSuite) TestRead() {
 	r.Equal("app1", app.Properties["app_name"])
 }
 
+func (suite *AppSuite) TestCreate() {
+	app := gitops.NewApp("app-create", suite.appGroup)
+	app.Properties["groupId"] = "com/trendminer/group"
+	app.Properties["groupId"] = "app-create-dist"
+	app.Artifacts["test"] = "https://nexus.trendminer.net/repository/app-create-dist.zip"
+	err := app.Create()
+	r := suite.Require()
+	r.Nil(err)
+	app2 := gitops.NewApp("app-create", suite.appGroup)
+	err = app2.Read()
+	r.Nil(err)
+	r.Equal(app, app2)
+}
+
+func (suite *AppSuite) TestCreateFromDefaultTemplate() {
+	app := gitops.NewApp("app-create-default-templ", suite.appGroup)
+	app.Properties["groupId"] = "com/trendminer/group"
+	app.Properties["artifactId"] = "app-create-dist"
+	err := app.CreateFromTemplate("")
+	r := suite.Require()
+	r.Nil(err)
+	app2 := gitops.NewApp("app-create-default-templ", suite.appGroup)
+	err = app2.Read()
+	r.Nil(err)
+	r.Equal("app-create-default-templ", app2.Name)
+	r.Len(app2.Properties, 5)
+	r.Len(app2.Artifacts, 2)
+	r.Equal("[gosh:repo:docker]/app-create-default-templ:[gosh:version]", app2.Artifacts["docker"])
+}
+
 func (suite *AppSuite) TestFindApp() {
 	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test/app2.yml")
 	filet.File(suite.T(), f, testAppFileContents)

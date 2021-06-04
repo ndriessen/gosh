@@ -55,7 +55,7 @@ func (group *AppGroup) Create() error {
 
 func (group *AppGroup) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping group %s to kapitan file: %+v", group.Name, group)
-	f := &kapitanFile{}
+	f := newKapitanFile()
 	for _, app := range group.Apps {
 		f.Classes = append(f.Classes, appPrefix+group.Name+"."+app.Name)
 	}

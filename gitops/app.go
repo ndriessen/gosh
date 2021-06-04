@@ -5,6 +5,7 @@ import (
 	"gosh/log"
 	"gosh/util"
 	"io/fs"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 )
@@ -21,7 +22,7 @@ type App struct {
 }
 
 func NewApp(name string, group *AppGroup) *App {
-	return &App{Name: name, group: group, Properties: map[string]string{}}
+	return &App{Name: name, group: group, Properties: map[string]string{}, Artifacts: map[string]string{}}
 }
 
 func FindApp(name string) (app *App, err error) {
@@ -49,13 +50,71 @@ func (app *App) Read() error {
 	return Read(app)
 }
 
+func (app *App) Create() error {
+	if err := prepareCreate(app); err == nil {
+		return createFromStruct(app)
+	} else {
+		return err
+	}
+}
+func (app *App) CreateFromTemplate(templateName string) error {
+	if err := prepareCreate(app); err == nil {
+		return createFromTemplate(app, templateName)
+	} else {
+		return err
+	}
+}
+
+func prepareCreate(app *App) error {
+	log.Tracef("Create app with input: %+v", app)
+	if app == nil || !app.isValid() {
+		return log.Err(ValidationErr, "Invalid app struct, use NewApp() to create one")
+	}
+	if app.Exists() {
+		return log.Errf(ResourceAlreadyExistsErr, "The app '%s' already exists", app.Name)
+	}
+	if existing, _ := FindApp(app.Name); existing != nil {
+		return log.Errf(ResourceAlreadyExistsErr, "The app '%s' already exists in another group, app names must be unique", app.Name)
+	}
+	if !app.group.Exists() {
+		log.Debugf("Creating group %s for app %s", app.group.Name, app.Name)
+		if err := app.group.Create(); err != nil {
+			return log.Errf(err, "Error creating group %s for app %s", app.group.Name, app.Name)
+		}
+	}
+	return nil
+}
+
+func createFromTemplate(app *App, templateName string) (err error) {
+	if t, err := NewAppTemplate(templateName); err == nil {
+		if f, err := t.Render(app); err == nil {
+			if err = ioutil.WriteFile(app.GetFilePath(), []byte(f), 0644); err == nil {
+				return nil
+			}
+		}
+	}
+	return
+}
+
+func createFromStruct(app *App) error {
+	f := app.mapToKapitanFile()
+	if err := WriteKapitanFile(app.GetFilePath(), f); err == nil {
+		log.Infof("Created app '%s", app.Name)
+		return nil
+	} else {
+		return log.Errf(err, "Error writing app group file '%s'", app.GetFilePath())
+	}
+}
+
 func (app *App) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping app %s to kapitan file: %+v", app.Name, app)
-	f := &kapitanFile{}
-	props := f.Parameters[app.Name].(map[string]interface{})
+	f := newKapitanFile()
+	props := map[string]interface{}{}
 	for key, value := range app.Properties {
 		props[key] = value
 	}
+	props["artifacts"] = app.Artifacts
+	f.Parameters[app.Name] = props
 	log.Tracef("Mapped app %s to kapitan file, result: %+v", app.Name, f)
 	return f
 }
@@ -123,13 +182,13 @@ func buildReplacementMap(list VersionsList, version string) (map[string]string, 
 	result := map[string]string{}
 	for t, urls := range util.Config.ArtifactRepositories {
 		if v, exists := urls[strings.ToLower(list.getResourceName())]; exists {
-			result["{{gosh:repo:"+t+"}}"] = v
+			result["[gosh:repo:"+t+"]"] = v
 		} else if v, exists = urls["default"]; exists {
-			result["{{gosh:repo:"+t+"}}"] = v
+			result["[gosh:repo:"+t+"]"] = v
 		} else {
 			return nil, log.Errf(errors.New("No default repository set for type "+t), "could not generate artifacts")
 		}
 	}
-	result["{{gosh:version}}"] = version
+	result["[gosh:version]"] = version
 	return result, nil
 }

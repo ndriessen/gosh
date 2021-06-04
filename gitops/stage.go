@@ -26,7 +26,7 @@ func (stage *Stage) Read() error {
 
 func (stage *Stage) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping stage %s to kapitan file: %+v", stage.Name, stage)
-	f := &kapitanFile{}
+	f := newKapitanFile()
 	props := f.Parameters[stage.Name].(map[string]interface{})
 	for key, value := range stage.Versions {
 		props[key] = value

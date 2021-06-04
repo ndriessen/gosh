@@ -43,7 +43,7 @@ func (release *Release) Read() error {
 
 func (release *Release) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping release %s to kapitan file: %+v", release.Name, release)
-	f := &kapitanFile{}
+	f := newKapitanFile()
 	props := f.Parameters[release.Name].(map[string]interface{})
 	for key, value := range release.Versions {
 		props[key] = map[string]string{"version": value}
