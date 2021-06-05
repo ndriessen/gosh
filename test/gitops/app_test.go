@@ -4,8 +4,8 @@ import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
 	"gosh/gitops"
+	"gosh/test"
 	"gosh/util"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -61,11 +61,10 @@ type AppSuite struct {
 // Make sure that VariableThatShouldStartAtFive is set to five
 // before each test
 func (suite *AppSuite) SetupSuite() {
-	dir := filet.TmpDir(suite.T(), "")
-	util.Context.WorkingDir = dir
+	test.SetupWorkingDir(suite.Suite)
+	test.CreateTestAppGroup(suite.Suite, "test")
+
 	suite.appGroup = &gitops.AppGroup{Name: "test"}
-	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test")
-	_ = os.MkdirAll(p, 0755)
 }
 
 func (suite *AppSuite) TearDownSuite() {
@@ -109,6 +108,13 @@ func (suite *AppSuite) TestCreate() {
 	err = app2.Read()
 	r.Nil(err)
 	r.Equal(app, app2)
+	g := gitops.NewAppGroup("test")
+	_ = g.Read()
+	found := false
+	for _, v := range g.Apps {
+		found = v.Name == app.Name
+	}
+	r.True(found, "app not found in group")
 }
 
 func (suite *AppSuite) TestCreateFromDefaultTemplate() {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"gosh/log"
 	"gosh/util"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -55,14 +56,18 @@ func NewAppTemplate(templateName string) (*AppTemplate, error) {
 		return DefaultAppTemplate, nil
 	}
 	templateFile := filepath.Join(util.Context.WorkingDir, ".gosh", "templates", templateName+".yml")
-	if info, err := os.Stat(templateFile); err != nil && !info.IsDir() {
-		if t, err := template.New("default").Parse(defaultAppTemplateContents); err == nil {
-			return &AppTemplate{
-				Name:     templateName,
-				template: t,
-			}, nil
+	if info, err := os.Stat(templateFile); err == nil && !info.IsDir() {
+		if data, err := ioutil.ReadFile(templateFile); err == nil {
+			if t, err := template.New("default").Parse(string(data)); err == nil {
+				return &AppTemplate{
+					Name:     templateName,
+					template: t,
+				}, nil
+			} else {
+				return nil, log.Errf(err, "Could not load app template %s", templateName)
+			}
 		} else {
-			return nil, log.Errf(err, "Could not load app template %s", templateName)
+			return nil, log.Errf(TemplateNotFoundErr, "Could not read template %s", templateFile)
 		}
 	} else {
 		return nil, log.Errf(TemplateNotFoundErr, "Could not find template %s", templateFile)

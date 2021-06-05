@@ -70,11 +70,6 @@ func (group *AppGroup) mapFromKapitanFile(f *kapitanFile) {
 			Name:  strings.TrimPrefix(class, appPrefix+group.Name+"."),
 			group: group,
 		}
-		//if properties, exists := f.Parameters[app.Name]; exists {
-		//	for key, value := range properties.(map[string]string) {
-		//		app.Properties[key] = value
-		//	}
-		//}
 		group.Apps = append(group.Apps, app)
 	}
 	log.Tracef("Mapped group %s from kapitan file, result: %+v", group.Name, group)
@@ -85,7 +80,7 @@ func (group *AppGroup) Read() error {
 }
 
 func (group *AppGroup) Update() error {
-	return nil
+	return Update(group)
 }
 
 func (group *AppGroup) Delete() error {

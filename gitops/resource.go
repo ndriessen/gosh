@@ -34,7 +34,7 @@ func Exists(resource Resource) bool {
 func Read(resource Resource) error {
 	log.Tracef("Read %s with input: %+v", resource.getResourceName(), resource)
 	if resource == nil || !resource.isValid() {
-		return log.Errf(ValidationErr, "Invalid %s struct, use NewAppGroup() to create one", resource.getResourceType())
+		return log.Errf(ValidationErr, "Invalid struct, use constructor to create one")
 	}
 	if !resource.Exists() {
 		return log.Errf(ResourceDoesNotExistErr, "The %s '%s' does not exist", resource.getResourceType(), resource.getResourceName())
@@ -46,5 +46,23 @@ func Read(resource Resource) error {
 		return nil
 	} else {
 		return log.Errf(err, "Could not read %s '%s' file", resource.getResourceType(), resource.getResourceName())
+	}
+}
+
+func Update(resource Resource) error {
+	log.Tracef("Update %s with input: %+v", resource.getResourceName(), resource)
+	if resource == nil || !resource.isValid() {
+		return log.Errf(ValidationErr, "Invalid struct, use constructor to create one")
+	}
+	if !resource.Exists() {
+		return log.Errf(ResourceDoesNotExistErr, "The %s '%s' does not exist", resource.getResourceType(), resource.getResourceName())
+	}
+	f := resource.mapToKapitanFile()
+	if err := WriteKapitanFile(resource.GetFilePath(), f); err == nil {
+		log.Tracef("Updated %s, result: %+v", resource.getResourceType(), resource)
+		log.Infof("Updated %s '%s'", resource.getResourceType(), resource.getResourceName())
+		return nil
+	} else {
+		return log.Errf(err, "Could not update %s '%s'", resource.getResourceType(), resource.getResourceName())
 	}
 }

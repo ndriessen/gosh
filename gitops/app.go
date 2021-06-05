@@ -43,25 +43,43 @@ func FindApp(name string) (app *App, err error) {
 	if app == nil && err == nil {
 		err = ResourceDoesNotExistErr
 	}
-	return app, log.Errf(err, "could not find app %s", name)
+	return app, err
+}
+
+func (app *App) String() string {
+	if app == nil {
+		return "[app: nil]"
+	}
+	return "[app: " + app.Name + "]"
 }
 
 func (app *App) Read() error {
 	return Read(app)
 }
 
-func (app *App) Create() error {
-	if err := prepareCreate(app); err == nil {
-		return createFromStruct(app)
-	} else {
-		return err
+func (app *App) Create() (err error) {
+	if err = prepareCreate(app); err == nil {
+		if err = createFromStruct(app); err == nil {
+			return addAppToGroup(app)
+		}
 	}
+	return
 }
-func (app *App) CreateFromTemplate(templateName string) error {
-	if err := prepareCreate(app); err == nil {
-		return createFromTemplate(app, templateName)
+func (app *App) CreateFromTemplate(templateName string) (err error) {
+	if err = prepareCreate(app); err == nil {
+		if err = createFromTemplate(app, templateName); err == nil {
+			return addAppToGroup(app)
+		}
+	}
+	return
+}
+
+func addAppToGroup(app *App) error {
+	if err := app.group.Read(); err == nil {
+		app.group.Apps = append(app.group.Apps, app)
+		return app.group.Update()
 	} else {
-		return err
+		return log.Errf(err, "could not add app %s to group", app.Name)
 	}
 }
 
@@ -85,15 +103,20 @@ func prepareCreate(app *App) error {
 	return nil
 }
 
-func createFromTemplate(app *App, templateName string) (err error) {
+func createFromTemplate(app *App, templateName string) error {
 	if t, err := NewAppTemplate(templateName); err == nil {
 		if f, err := t.Render(app); err == nil {
 			if err = ioutil.WriteFile(app.GetFilePath(), []byte(f), 0644); err == nil {
 				return nil
+			} else {
+				return log.Errf(err, "error writing app file")
 			}
+		} else {
+			return log.Errf(err, "error rendering app template %s", templateName)
 		}
+	} else {
+		return log.Errf(err, "error loading app template %s", templateName)
 	}
-	return
 }
 
 func createFromStruct(app *App) error {
