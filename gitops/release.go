@@ -64,12 +64,17 @@ func (release *Release) Update() error {
 }
 
 func (release *Release) UpdateVersion(appName string, version string) error {
-	if app, err := FindApp(appName); err == nil {
-		release.Versions[app.Name] = version
-		return release.Update()
+	if err := release.Read(); err == nil {
+		if app, err := FindApp(appName); err == nil {
+			release.Versions[app.Name] = version
+			return release.Update()
+		} else {
+			return log.Errf(ResourceDoesNotExistErr, "the app with name %s does not exist", appName)
+		}
 	} else {
-		return log.Errf(ResourceDoesNotExistErr, "the app with name %s does not exist", appName)
+		return err
 	}
+
 }
 
 func (release *Release) mapToKapitanFile() *kapitanFile {

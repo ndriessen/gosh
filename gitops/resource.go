@@ -52,6 +52,10 @@ func create(resource Resource) error {
 }
 
 func read(resource Resource) error {
+	if resource.initialized() {
+		log.Tracef("Resource already read, skipping")
+		return nil
+	}
 	log.Tracef("Read %s with input: %+v", resource.getResourceName(), resource)
 	if resource == nil || !resource.isValid() {
 		return log.Errf(ValidationErr, "Invalid struct, use constructor to create one")

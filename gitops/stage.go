@@ -30,21 +30,26 @@ func NewStage(name string) *Stage {
 }
 
 func (stage *Stage) UpdateVersion(appName string, version string) error {
-	if app, err := FindApp(appName); err == nil {
-		stage.Versions[app.Name] = version
-		if err = stage.Update(); err == nil {
-			release := NewRelease(stage.Name, StageRelease)
-			if err = release.Read(); err == nil {
-				return release.UpdateVersion(appName, version)
+	if err := stage.Read(); err == nil {
+		if app, err := FindApp(appName); err == nil {
+			stage.Versions[app.Name] = version
+			if err = stage.Update(); err == nil {
+				release := NewRelease(stage.Name, StageRelease)
+				if err = release.Read(); err == nil {
+					return release.UpdateVersion(appName, version)
+				} else {
+					return log.Errf(err, "Could not update stage release %s", release.Name)
+				}
 			} else {
-				return log.Errf(err, "Could not update stage release %s", release.Name)
+				return log.Errf(err, "Could not update stage %s", stage.Name)
 			}
 		} else {
-			return log.Errf(err, "Could not update stage %s", stage.Name)
+			return log.Errf(ResourceDoesNotExistErr, "app with name %s does not exist", appName)
 		}
 	} else {
-		return log.Errf(ResourceDoesNotExistErr, "app with name %s does not exist", appName)
+		return err
 	}
+
 }
 
 func (stage *Stage) Create() error {
@@ -89,7 +94,7 @@ func (stage *Stage) mapToKapitanFile() *kapitanFile {
 func (stage *Stage) mapFromKapitanFile(f *kapitanFile) {
 	log.Tracef("Mapping stage %s from kapitan file %+v", stage.Name, f)
 	stage.Versions = make(map[string]string, 0)
-	if properties, exists := f.Parameters[stage.Name]; exists {
+	if properties, exists := f.Parameters[stage.Name]; exists && properties != nil {
 		for key, value := range properties.(map[interface{}]interface{}) {
 			stage.Versions[key.(string)] = value.(string)
 		}

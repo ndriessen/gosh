@@ -10,8 +10,8 @@ import (
 )
 
 type kapitanFile struct {
-	Classes    []string
-	Parameters map[interface{}]interface{}
+	Classes    []string                    `yaml:",omitempty"`
+	Parameters map[interface{}]interface{} `yaml:",omitempty"`
 }
 
 const (

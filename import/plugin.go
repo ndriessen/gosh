@@ -21,27 +21,29 @@ func init() {
 	var t interface{} = TrendMinerPlugin
 	if p, ok := t.(ImportPlugin); ok {
 		BundledPlugins[p.Name()] = p
+	} else {
+		log.Warnf("Could not load bundled plugin 'trendminer', not implementing ImportPlugin{} correctly")
 	}
 }
 
 type ImportPlugin interface {
 	Name() string
-	Import() error
+	Import(apps bool, stages bool, releases bool) error
 }
 
-func Import(pluginName string) (err error) {
+func Import(pluginName string, apps bool, stages bool, releases bool) (err error) {
 	if p, exists := BundledPlugins[pluginName]; exists {
-		return p.Import()
+		return p.Import(apps, stages, releases)
 	}
 	if p, err := loadPlugin(pluginName); err == nil {
-		err = runPlugin(pluginName, p)
+		err = runPlugin(pluginName, p, apps, stages, releases)
 	}
 	return
 }
 
-func runPlugin(pluginName string, p ImportPlugin) error {
+func runPlugin(pluginName string, p ImportPlugin, apps bool, stages bool, releases bool) error {
 	log.Infof("Running import plugin %s", pluginName)
-	if err := p.Import(); err == nil {
+	if err := p.Import(apps, stages, releases); err == nil {
 		log.Infof("Import with plugin %s successful", pluginName)
 	} else {
 		return log.Errf(err, "Import with plugin %s failed", pluginName)
