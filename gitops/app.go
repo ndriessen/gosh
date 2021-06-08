@@ -19,6 +19,15 @@ type App struct {
 	Properties map[string]string
 	Artifacts  map[string]string
 	group      *AppGroup
+	_read      bool
+}
+
+func (app *App) initialized() bool {
+	return app._read
+}
+
+func (app *App) setInitialized() {
+	app._read = true
 }
 
 func NewApp(name string, group *AppGroup) *App {
@@ -54,7 +63,11 @@ func (app *App) String() string {
 }
 
 func (app *App) Read() error {
-	return Read(app)
+	return read(app)
+}
+
+func (app *App) Update() error {
+	return update(app)
 }
 
 func (app *App) Create() (err error) {
@@ -166,7 +179,7 @@ func (app *App) mapFromKapitanFile(f *kapitanFile) {
 }
 
 func (app *App) Exists() bool {
-	return Exists(app)
+	return exists(app)
 }
 
 func (app *App) GetFilePath() string {
@@ -185,7 +198,7 @@ func (app *App) getResourceName() string {
 	return app.Name
 }
 
-func (app *App) GetArtifact(list VersionsList, version string, artifactType string) (string, error) {
+func (app *App) GetArtifact(list AppList, version string, artifactType string) (string, error) {
 	if app.Artifacts != nil {
 		if value, exists := app.Artifacts[artifactType]; exists {
 			if replacements, err := buildReplacementMap(list, version); err == nil {
@@ -201,7 +214,7 @@ func (app *App) GetArtifact(list VersionsList, version string, artifactType stri
 	return "", NoSuchArtifactErr
 }
 
-func buildReplacementMap(list VersionsList, version string) (map[string]string, error) {
+func buildReplacementMap(list AppList, version string) (map[string]string, error) {
 	result := map[string]string{}
 	for t, urls := range util.Config.ArtifactRepositories {
 		if v, exists := urls[strings.ToLower(list.getResourceName())]; exists {

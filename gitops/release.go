@@ -18,6 +18,15 @@ type Release struct {
 	Type     ReleaseType
 	Name     string
 	Versions map[string]string
+	_read    bool
+}
+
+func (release *Release) initialized() bool {
+	return release._read
+}
+
+func (release *Release) setInitialized() {
+	release._read = true
 }
 
 func NewRelease(name string, releaseType ReleaseType) *Release {
@@ -37,13 +46,31 @@ func NewReleaseFromFullName(fullName string) (*Release, error) {
 	}
 }
 
+func (release *Release) Create() error {
+	return create(release)
+}
+
 func (release *Release) Read() error {
-	return Read(release)
+	return read(release)
+}
+
+func (release *Release) Update() error {
+	return update(release)
+}
+
+func (release *Release) UpdateVersion(appName string, version string) error {
+	if app, err := FindApp(appName); err == nil {
+		release.Versions[app.Name] = version
+		return release.Update()
+	} else {
+		return log.Errf(ResourceDoesNotExistErr, "the app with name %s does not exist", appName)
+	}
 }
 
 func (release *Release) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping release %s to kapitan file: %+v", release.Name, release)
 	f := newKapitanFile()
+	f.Parameters[release.Name] = make(map[string]interface{}, 0)
 	props := f.Parameters[release.Name].(map[string]interface{})
 	for key, value := range release.Versions {
 		props[key] = map[string]string{"version": value}
@@ -78,7 +105,7 @@ func (release *Release) GetArtifacts(group string, app string, artifactType stri
 }
 
 func (release *Release) Exists() bool {
-	return Exists(release)
+	return exists(release)
 }
 
 func (release *Release) GetFilePath() string {

@@ -4,8 +4,8 @@ import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
 	"gosh/gitops"
+	"gosh/test"
 	"gosh/util"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -30,14 +30,8 @@ type ReleaseSuite struct {
 // Make sure that VariableThatShouldStartAtFive is set to five
 // before each test
 func (suite *ReleaseSuite) SetupSuite() {
-	dir := filet.TmpDir(suite.T(), "")
-	util.Context.WorkingDir = dir
-	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/releases")
-	_ = os.MkdirAll(p, 0755)
-	p = filepath.Join(util.Context.WorkingDir, "inventory/classes/releases/product")
-	_ = os.MkdirAll(p, 0755)
-	p = filepath.Join(util.Context.WorkingDir, "inventory/classes/releases/hotfix")
-	_ = os.MkdirAll(p, 0755)
+	test.SetupWorkingDir(suite.Suite)
+	test.CreateTestRelease(suite.Suite, "test-release", gitops.ProductRelease)
 }
 
 func (suite *ReleaseSuite) TearDownSuite() {
@@ -59,14 +53,12 @@ func (suite *ReleaseSuite) TestReadInvalidStructReturnValidationErr() {
 }
 
 func (suite *ReleaseSuite) TestRead() {
-	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/releases/product/R2021.R1.yml")
-	filet.File(suite.T(), f, testReleaseFileContents)
-	release := gitops.NewRelease("R2021.R1", gitops.ProductRelease)
+	release := gitops.NewRelease("test-release", gitops.ProductRelease)
 	err := release.Read()
 	r := suite.Require()
 	r.Nil(err)
 	r.Len(release.Versions, 3)
-	r.Equal("R2021.R1", release.Name)
+	r.Equal("test-release", release.Name)
 	r.Equal("1.0.0", release.Versions["app1"])
 	r.Equal("2.0.0", release.Versions["app2"])
 	r.Equal("3.0.0", release.Versions["app3"])
@@ -92,6 +84,39 @@ func (suite *ReleaseSuite) TestNewReleaseFromFullName() {
 	r.Nil(err)
 	r.Equal(gitops.ProductRelease, release.Type)
 	r.Equal("release", release.Name)
+}
+
+func (suite *ReleaseSuite) TestCreate() {
+	release := gitops.NewRelease("R1", gitops.StageRelease)
+	release.Versions["app1"] = "1.0.0"
+	release.Versions["app2"] = "2.0.0"
+	err := release.Create()
+	r := suite.Require()
+	r.Nil(err)
+
+	err = release.Read()
+	r.Nil(err)
+	r.Equal("R1", release.Name)
+	r.Len(release.Versions, 2)
+	r.Equal("1.0.0", release.Versions["app1"])
+	r.Equal("2.0.0", release.Versions["app2"])
+}
+
+func (suite *ReleaseSuite) TestUpdate() {
+	release := gitops.NewRelease("test-release", gitops.ProductRelease)
+	r := suite.Require()
+
+	err := release.Read()
+	r.Nil(err)
+	release.Versions["my-app"] = "4.0.0"
+	err = release.Update()
+	r.Nil(err)
+	r.Equal("test-release", release.Name)
+	r.Len(release.Versions, 4)
+	r.Equal("1.0.0", release.Versions["app1"])
+	r.Equal("2.0.0", release.Versions["app2"])
+	r.Equal("3.0.0", release.Versions["app3"])
+	r.Equal("4.0.0", release.Versions["my-app"])
 }
 
 func TestReleaseTestSuite(t *testing.T) {

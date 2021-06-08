@@ -14,20 +14,71 @@ const (
 type Stage struct {
 	Name     string
 	Versions map[string]string
+	_read    bool
+}
+
+func (stage *Stage) initialized() bool {
+	return stage._read
+}
+
+func (stage *Stage) setInitialized() {
+	stage._read = true
 }
 
 func NewStage(name string) *Stage {
 	return &Stage{Name: name, Versions: map[string]string{}}
 }
 
+func (stage *Stage) UpdateVersion(appName string, version string) error {
+	if app, err := FindApp(appName); err == nil {
+		stage.Versions[app.Name] = version
+		if err = stage.Update(); err == nil {
+			release := NewRelease(stage.Name, StageRelease)
+			if err = release.Read(); err == nil {
+				return release.UpdateVersion(appName, version)
+			} else {
+				return log.Errf(err, "Could not update stage release %s", release.Name)
+			}
+		} else {
+			return log.Errf(err, "Could not update stage %s", stage.Name)
+		}
+	} else {
+		return log.Errf(ResourceDoesNotExistErr, "app with name %s does not exist", appName)
+	}
+}
+
+func (stage *Stage) Create() error {
+	if err := create(stage); err == nil {
+		stageRelease := NewRelease(stage.Name, StageRelease)
+		stageRelease.Versions = stage.Versions
+		if !stageRelease.Exists() {
+			if err = stageRelease.Create(); err != nil {
+				return log.Errf(err, "Could not create associated stage release %s", stage.Name)
+			}
+		} else {
+			//to sync versions
+			_ = stageRelease.Update()
+		}
+		log.Infof("Created stage '%s'", stage.Name)
+		return nil
+	} else {
+		return log.Errf(err, "Could not create stage %s", stage.Name)
+	}
+}
+
 func (stage *Stage) Read() error {
-	return Read(stage)
+	return read(stage)
+}
+
+func (stage *Stage) Update() error {
+	return update(stage)
 }
 
 func (stage *Stage) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping stage %s to kapitan file: %+v", stage.Name, stage)
 	f := newKapitanFile()
-	props := f.Parameters[stage.Name].(map[string]interface{})
+	f.Parameters[stage.Name] = make(map[string]string, 0)
+	props := f.Parameters[stage.Name].(map[string]string)
 	for key, value := range stage.Versions {
 		props[key] = value
 	}
@@ -59,7 +110,7 @@ func (stage *Stage) GetArtifacts(group string, app string, artifactType string) 
 }
 
 func (stage *Stage) Exists() bool {
-	return Exists(stage)
+	return exists(stage)
 }
 
 func (stage *Stage) GetFilePath() string {

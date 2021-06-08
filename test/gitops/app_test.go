@@ -107,7 +107,9 @@ func (suite *AppSuite) TestCreate() {
 	app2 := gitops.NewApp("app-create", suite.appGroup)
 	err = app2.Read()
 	r.Nil(err)
-	r.Equal(app, app2)
+	r.Equal(app.Name, app2.Name)
+	r.Equal(app.Properties, app2.Properties)
+	r.Equal(app.Artifacts, app2.Artifacts)
 	g := gitops.NewAppGroup("test")
 	_ = g.Read()
 	found := false

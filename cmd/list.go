@@ -16,7 +16,7 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 }
 
-func LoadVersionsList(flag string, value string) (gitops.VersionsList, error) {
+func LoadVersionsList(flag string, value string) (gitops.AppList, error) {
 	log.Debugf("Loading %s versions for %s", flag, value)
 	switch flag {
 	case StageFlag:

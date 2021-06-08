@@ -1,7 +1,6 @@
 package gitops
 
 import (
-	"errors"
 	"gosh/log"
 	"gosh/util"
 	"os"
@@ -14,14 +13,18 @@ const (
 	appPrefix    = "apps."
 )
 
-var (
-	AppGroupAlreadyExistsErr = errors.New("app group already exists")
-	AppGroupDoesNotExistErr  = errors.New("app group does not exist")
-)
-
 type AppGroup struct {
-	Name string
-	Apps []*App
+	Name  string
+	Apps  []*App
+	_read bool
+}
+
+func (group *AppGroup) initialized() bool {
+	return group._read
+}
+
+func (group *AppGroup) setInitialized() {
+	group._read = true
 }
 
 // NewAppGroup /** Constructor for an AppGroup type
@@ -34,20 +37,8 @@ func NewAppGroup(name string, apps ...*App) *AppGroup {
 
 func (group *AppGroup) Create() error {
 	log.Tracef("Create app group with input: %+v", group)
-	if group == nil || !group.isValid() {
-		return log.Err(ValidationErr, "Invalid app group struct, use NewAppGroup() to create one")
-	}
-	if group.Exists() {
-		return log.Errf(AppGroupAlreadyExistsErr, "The app group '%s' already exists", group.Name)
-	}
 	if err := os.MkdirAll(group.GetFolderPath(), 0755); err == nil {
-		f := group.mapToKapitanFile()
-		if err = WriteKapitanFile(group.GetFilePath(), f); err == nil {
-			log.Infof("Created app group '%s", group.Name)
-			return nil
-		} else {
-			return log.Errf(err, "Error writing app group file '%s'", group.GetFilePath())
-		}
+		return create(group)
 	} else {
 		return log.Errf(err, "Error creating app group folder '%s'", group.GetFolderPath())
 	}
@@ -76,11 +67,11 @@ func (group *AppGroup) mapFromKapitanFile(f *kapitanFile) {
 }
 
 func (group *AppGroup) Read() error {
-	return Read(group)
+	return read(group)
 }
 
 func (group *AppGroup) Update() error {
-	return Update(group)
+	return update(group)
 }
 
 func (group *AppGroup) Delete() error {
