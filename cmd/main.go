@@ -13,11 +13,20 @@ const (
 	OutputFlag  = "output"
 )
 
+var RequiredFlagMissingErr = errors.New("required flag is missing")
+
 func GetArg(args []string, position int) string {
 	if len(args) > position {
 		return args[position]
 	}
 	return ""
+}
+
+func GetRequiredArg(args []string, position int) (string, error) {
+	if len(args) > position {
+		return args[position], nil
+	}
+	return "", RequiredFlagMissingErr
 }
 
 func AddStageFlag(cmd *cobra.Command) {

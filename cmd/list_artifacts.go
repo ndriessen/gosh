@@ -20,8 +20,8 @@ var (
 			if err == RequiredFlagNotSetErr {
 				log.Fatal(err, "You must specify --stage or --release")
 			}
-			if l, err := LoadVersionsList(flag, value); err == nil {
-				if artifacts, err := l.GetArtifacts(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0), "maven"); err == nil {
+			if appList, err := LoadAppList(flag, value); err == nil {
+				if artifacts, err := appList.GetArtifacts(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0), "maven"); err == nil {
 					if data, err := list.Render(GetStringFlag(cmd, OutputFlag, list.DefaultOutputFormat), artifacts); err == nil {
 						fmt.Println(data)
 					} else {

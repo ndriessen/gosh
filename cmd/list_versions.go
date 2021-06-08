@@ -20,10 +20,10 @@ var (
 			if err == RequiredFlagNotSetErr {
 				log.Fatal(err, "You must specify --stage or --release")
 			}
-			if l, err := LoadVersionsList(flag, value); err == nil {
+			if appList, err := LoadAppList(flag, value); err == nil {
 				if data, err := list.Render(
 					GetStringFlag(cmd, OutputFlag, list.DefaultOutputFormat),
-					l.GetVersions(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0)),
+					appList.GetVersions(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0)),
 				); err == nil {
 					fmt.Println(data)
 				} else {

@@ -16,33 +16,33 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 }
 
-func LoadVersionsList(flag string, value string) (gitops.AppList, error) {
-	log.Debugf("Loading %s versions for %s", flag, value)
-	switch flag {
+func LoadAppList(appListType string, appListName string) (gitops.AppList, error) {
+	log.Debugf("Loading %s versions for %s", appListType, appListName)
+	switch appListType {
 	case StageFlag:
 		{
-			stage := gitops.NewStage(value)
+			stage := gitops.NewStage(appListName)
 			if err := stage.Read(); err == nil {
 				return stage, nil
 			} else {
-				return nil, log.Errf(err, "Error loading stage %s", value)
+				return nil, err
 			}
 
 		}
 	case ReleaseFlag:
 		{
-			if release, err := gitops.NewReleaseFromFullName(value); err == nil {
+			if release, err := gitops.NewReleaseFromFullName(appListName); err == nil {
 				if err = release.Read(); err == nil {
 					return release, nil
 				} else {
-					return nil, log.Errf(err, "Error loading release %s", value)
+					return nil, log.Errf(err, "Error loading release %s", appListName)
 				}
 			} else {
-				return nil, log.Errf(err, "Error loading release %s", value)
+				return nil, err
 			}
 		}
 	default:
-		return nil, log.Errf(gitops.ResourceDoesNotExistErr, "unknown version list type %s", flag)
+		return nil, log.Errf(gitops.ResourceDoesNotExistErr, "unknown version list type %s", appListType)
 	}
 
 }

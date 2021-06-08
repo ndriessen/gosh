@@ -12,7 +12,9 @@ const (
 	releasesPath = kapitanClassesPath + "releases"
 )
 
-var InvalidFullReleaseNameErr = errors.New("invalid release name, muse be 'type/name'")
+var (
+	InvalidFullReleaseNameErr = errors.New("invalid release name, must be 'type/name' and type 'stage' is reserved")
+)
 
 type Release struct {
 	Type     ReleaseType
@@ -40,6 +42,9 @@ func NewReleaseFromFullName(fullName string) (*Release, error) {
 	}
 	name := parts[1]
 	if t, err := NewReleaseType(parts[0]); err == nil {
+		if t == StageRelease {
+			return nil, InvalidFullReleaseNameErr
+		}
 		return NewRelease(name, t), nil
 	} else {
 		return nil, log.Errf(err, "Unsupported release type", parts[0])

@@ -78,6 +78,13 @@ func (suite *ReleaseSuite) TestNewReleaseFromFullNameInvalidType() {
 	r.Equal(gitops.UnsupportedReleaseTypeErr, err)
 }
 
+func (suite *ReleaseSuite) TestNewReleaseFromFullNameStageReleaseNotSupported() {
+	_, err := gitops.NewReleaseFromFullName("stage/release")
+	r := suite.Require()
+	r.NotNil(err)
+	r.Equal(gitops.InvalidFullReleaseNameErr, err)
+}
+
 func (suite *ReleaseSuite) TestNewReleaseFromFullName() {
 	release, err := gitops.NewReleaseFromFullName("product/release")
 	r := suite.Require()
