@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	StageFlag   = "stage"
-	ReleaseFlag = "release"
-	GroupFlag   = "group"
-	OutputFlag  = "output"
+	StageFlag    = "stage"
+	ReleaseFlag  = "release"
+	GroupFlag    = "group"
+	OutputFlag   = "output"
+	TemplateFlag = "template"
 )
 
 var RequiredFlagMissingErr = errors.New("required flag is missing")
@@ -27,6 +28,10 @@ func GetRequiredArg(args []string, position int) (string, error) {
 		return args[position], nil
 	}
 	return "", RequiredFlagMissingErr
+}
+
+func AddTemplateFlag(cmd *cobra.Command) {
+	cmd.Flags().StringP(TemplateFlag, "t", "", "--template|-t TEMPLATE_NAME")
 }
 
 func AddStageFlag(cmd *cobra.Command) {

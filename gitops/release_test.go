@@ -1,37 +1,20 @@
-package gitops_test
+package gitops
 
 import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
-	"gosh/gitops"
-	"gosh/test"
 	"gosh/util"
 	"path/filepath"
 	"testing"
 )
 
-const testReleaseFileContents = `
-parameters:
-  R2021.R1:
-    app1:
-      version: 1.0.0
-    app2:
-      version: 2.0.0
-    app3:
-      version: 3.0.0
-`
-
-// Define the suite, and absorb the built-in basic suite
-// functionality from testify - including assertion methods.
 type ReleaseSuite struct {
 	suite.Suite
 }
 
-// Make sure that VariableThatShouldStartAtFive is set to five
-// before each test
 func (suite *ReleaseSuite) SetupSuite() {
-	test.SetupWorkingDir(suite.Suite)
-	test.CreateTestRelease(suite.Suite, "test-release", gitops.ProductRelease)
+	TestsSetupWorkingDir(suite.Suite)
+	CreateTestRelease(suite.Suite, "test-release", ProductRelease)
 }
 
 func (suite *ReleaseSuite) TearDownSuite() {
@@ -39,21 +22,21 @@ func (suite *ReleaseSuite) TearDownSuite() {
 }
 
 func (suite *ReleaseSuite) TestGetFilePath() {
-	release := gitops.NewRelease("R2021.R1", gitops.ProductRelease)
+	release := NewRelease("R2021.R1", ProductRelease)
 	r := suite.Require()
 	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/releases/product/R2021.R1.yml"), release.GetFilePath())
 }
 
 func (suite *ReleaseSuite) TestReadInvalidStructReturnValidationErr() {
-	release := &gitops.Release{}
+	release := &Release{}
 	err := release.Read()
 	r := suite.Require()
 	r.NotNil(err)
-	r.Equal(gitops.ValidationErr, err)
+	r.Equal(ValidationErr, err)
 }
 
 func (suite *ReleaseSuite) TestRead() {
-	release := gitops.NewRelease("test-release", gitops.ProductRelease)
+	release := NewRelease("test-release", ProductRelease)
 	err := release.Read()
 	r := suite.Require()
 	r.Nil(err)
@@ -65,36 +48,36 @@ func (suite *ReleaseSuite) TestRead() {
 }
 
 func (suite *ReleaseSuite) TestNewReleaseFromFullNameInvalidName() {
-	_, err := gitops.NewReleaseFromFullName("invalid")
+	_, err := NewReleaseFromFullName("invalid")
 	r := suite.Require()
 	r.NotNil(err)
-	r.Equal(gitops.InvalidFullReleaseNameErr, err)
+	r.Equal(InvalidFullReleaseNameErr, err)
 }
 
 func (suite *ReleaseSuite) TestNewReleaseFromFullNameInvalidType() {
-	_, err := gitops.NewReleaseFromFullName("invalid/release")
+	_, err := NewReleaseFromFullName("invalid/release")
 	r := suite.Require()
 	r.NotNil(err)
-	r.Equal(gitops.UnsupportedReleaseTypeErr, err)
+	r.Equal(UnsupportedReleaseTypeErr, err)
 }
 
 func (suite *ReleaseSuite) TestNewReleaseFromFullNameStageReleaseNotSupported() {
-	_, err := gitops.NewReleaseFromFullName("stage/release")
+	_, err := NewReleaseFromFullName("stage/release")
 	r := suite.Require()
 	r.NotNil(err)
-	r.Equal(gitops.InvalidFullReleaseNameErr, err)
+	r.Equal(InvalidFullReleaseNameErr, err)
 }
 
 func (suite *ReleaseSuite) TestNewReleaseFromFullName() {
-	release, err := gitops.NewReleaseFromFullName("product/release")
+	release, err := NewReleaseFromFullName("product/release")
 	r := suite.Require()
 	r.Nil(err)
-	r.Equal(gitops.ProductRelease, release.Type)
+	r.Equal(ProductRelease, release.Type)
 	r.Equal("release", release.Name)
 }
 
 func (suite *ReleaseSuite) TestCreate() {
-	release := gitops.NewRelease("R1", gitops.StageRelease)
+	release := NewRelease("R1", StageRelease)
 	release.Versions["app1"] = "1.0.0"
 	release.Versions["app2"] = "2.0.0"
 	err := release.Create()
@@ -110,7 +93,7 @@ func (suite *ReleaseSuite) TestCreate() {
 }
 
 func (suite *ReleaseSuite) TestUpdate() {
-	release := gitops.NewRelease("test-release", gitops.ProductRelease)
+	release := NewRelease("test-release", ProductRelease)
 	r := suite.Require()
 
 	err := release.Read()

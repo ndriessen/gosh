@@ -28,22 +28,22 @@ func init() {
 
 type ImportPlugin interface {
 	Name() string
-	Import(apps bool, stages bool, releases bool) error
+	Import(apps bool, stages bool, releases bool, appTemplateName string) error
 }
 
-func Import(pluginName string, apps bool, stages bool, releases bool) (err error) {
+func Import(pluginName string, apps bool, stages bool, releases bool, appTemplateName string) (err error) {
 	if p, exists := BundledPlugins[pluginName]; exists {
-		return p.Import(apps, stages, releases)
+		return p.Import(apps, stages, releases, appTemplateName)
 	}
 	if p, err := loadPlugin(pluginName); err == nil {
-		err = runPlugin(pluginName, p, apps, stages, releases)
+		err = runPlugin(pluginName, p, apps, stages, releases, appTemplateName)
 	}
 	return
 }
 
-func runPlugin(pluginName string, p ImportPlugin, apps bool, stages bool, releases bool) error {
+func runPlugin(pluginName string, p ImportPlugin, apps bool, stages bool, releases bool, appTemplateName string) error {
 	log.Infof("Running import plugin %s", pluginName)
-	if err := p.Import(apps, stages, releases); err == nil {
+	if err := p.Import(apps, stages, releases, appTemplateName); err == nil {
 		log.Infof("Import with plugin %s successful", pluginName)
 	} else {
 		return log.Errf(err, "Import with plugin %s failed", pluginName)

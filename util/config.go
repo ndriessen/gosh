@@ -37,11 +37,15 @@ var Config = &GoshConfig{}
 func InitializeConfig() {
 	v := viper.New()
 	projectConfigFile := filepath.Join(Context.WorkingDir, GOSH_CONFIG_DIR, GOSH_CONFIG_FILE)
-	v.SetConfigFile(projectConfigFile)
-	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			log.Fatal(err, "Could not read configuration")
+	if _, err := os.Stat(projectConfigFile); err == nil {
+		v.SetConfigFile(projectConfigFile)
+		if err := v.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				log.Fatal(err, "Could not read configuration")
+			}
 		}
+	} else {
+		log.Debugf("no project specific config file found in %s, skipping...", Context.WorkingDir)
 	}
 	viper.SetEnvPrefix("GOSH")
 	viper.AutomaticEnv()

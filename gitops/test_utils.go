@@ -1,10 +1,9 @@
-package test
+package gitops
 
 import (
 	"bytes"
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
-	"gosh/gitops"
 	"gosh/util"
 	"log"
 	"os"
@@ -57,11 +56,20 @@ func init() {
 	stageContentsTemplate, _ = template.New("stage").Parse(testStageFileContents)
 	appContentsTemplate, _ = template.New("app").Parse(testAppFileContents)
 	releaseContentsTemplate, _ = template.New("release").Parse(testReleaseFileContents)
+	testConfig = &util.GoshConfig{
+		DeploymentRepository: util.DeploymentRepository{
+			Url:               "",
+			SshKey:            "",
+			SshPrivateKeyPass: "",
+		},
+		ArtifactRepositories: nil,
+	}
 }
 
 var appContentsTemplate, appGroupContentsTemplate, stageContentsTemplate, releaseContentsTemplate *template.Template
+var testConfig *util.GoshConfig
 
-func SetupWorkingDir(suite suite.Suite) {
+func TestsSetupWorkingDir(suite suite.Suite) {
 	dir := filet.TmpDir(suite.T(), "")
 	util.Context.WorkingDir = dir
 	p := filepath.Join(util.Context.WorkingDir, "inventory/classes/releases/stage")
@@ -84,7 +92,7 @@ func CreateTestAppGroup(suite suite.Suite, name string) {
 	_ = os.MkdirAll(p, 0755)
 	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/", name+".yml")
 	var tpl bytes.Buffer
-	if err := appGroupContentsTemplate.Execute(&tpl, &gitops.AppGroup{Name: name}); err == nil {
+	if err := appGroupContentsTemplate.Execute(&tpl, &AppGroup{Name: name}); err == nil {
 		filet.File(suite.T(), f, tpl.String())
 	} else {
 		log.Fatalln("Could not create test app group", err)
@@ -97,20 +105,20 @@ func CreateTestStage(suite suite.Suite, name string) {
 	}
 	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/stages/", name+".yml")
 	var tpl bytes.Buffer
-	if err := stageContentsTemplate.Execute(&tpl, &gitops.Stage{Name: name}); err == nil {
+	if err := stageContentsTemplate.Execute(&tpl, &Stage{Name: name}); err == nil {
 		filet.File(suite.T(), f, tpl.String())
 	} else {
 		log.Fatalln("Could not create test stage", err)
 	}
 }
 
-func CreateTestRelease(suite suite.Suite, name string, rType gitops.ReleaseType) {
+func CreateTestRelease(suite suite.Suite, name string, rType ReleaseType) {
 	if name == "" {
 		name = "my-release"
 	}
 	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/releases/", rType.String(), name+".yml")
 	var tpl bytes.Buffer
-	if err := releaseContentsTemplate.Execute(&tpl, &gitops.Release{Name: name}); err == nil {
+	if err := releaseContentsTemplate.Execute(&tpl, &Release{Name: name}); err == nil {
 		filet.File(suite.T(), f, tpl.String())
 	} else {
 		log.Fatalln("Could not create test release", err)
@@ -123,7 +131,7 @@ func CreateTestApp(suite suite.Suite, name string, group string) {
 	}
 	f := filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/", group, name+".yml")
 	var tpl bytes.Buffer
-	if err := appContentsTemplate.Execute(&tpl, gitops.NewApp(name, gitops.NewAppGroup("test"))); err == nil {
+	if err := appContentsTemplate.Execute(&tpl, NewApp(name, NewAppGroup("test"))); err == nil {
 		filet.File(suite.T(), f, tpl.String())
 	} else {
 		log.Fatalln("Could not create test app", err)

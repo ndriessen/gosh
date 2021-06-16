@@ -1,10 +1,8 @@
-package gitops_test
+package gitops
 
 import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
-	"gosh/gitops"
-	"gosh/test"
 	"gosh/util"
 	"path/filepath"
 	"testing"
@@ -12,16 +10,16 @@ import (
 
 type StageSuite struct {
 	suite.Suite
-	stage *gitops.Stage
+	stage *Stage
 }
 
 func (suite *StageSuite) SetupSuite() {
-	test.SetupWorkingDir(suite.Suite)
-	test.CreateTestStage(suite.Suite, "alpha")
-	suite.stage = gitops.NewStage("alpha")
-	test.CreateTestAppGroup(suite.Suite, "test")
-	test.CreateTestApp(suite.Suite, "test-app", "test")
-	test.CreateTestRelease(suite.Suite, "alpha", gitops.StageRelease)
+	TestsSetupWorkingDir(suite.Suite)
+	CreateTestStage(suite.Suite, "alpha")
+	suite.stage = NewStage("alpha")
+	CreateTestAppGroup(suite.Suite, "test")
+	CreateTestApp(suite.Suite, "test-app", "test")
+	CreateTestRelease(suite.Suite, "alpha", StageRelease)
 }
 
 func (suite *StageSuite) TearDownSuite() {
@@ -29,21 +27,21 @@ func (suite *StageSuite) TearDownSuite() {
 }
 
 func (suite *StageSuite) TestGetFilePath() {
-	stage := gitops.NewStage("alpha")
+	stage := NewStage("alpha")
 	r := suite.Require()
 	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/stages/alpha.yml"), stage.GetFilePath())
 }
 
 func (suite *StageSuite) TestReadInvalidStructReturnValidationErr() {
-	app := &gitops.App{}
+	app := &App{}
 	err := app.Read()
 	r := suite.Require()
 	r.NotNil(err)
-	r.Equal(gitops.ValidationErr, err)
+	r.Equal(ValidationErr, err)
 }
 
 func (suite *StageSuite) TestRead() {
-	stage := gitops.NewStage("alpha")
+	stage := NewStage("alpha")
 	err := stage.Read()
 	r := suite.Require()
 	r.Nil(err)
@@ -55,7 +53,7 @@ func (suite *StageSuite) TestRead() {
 }
 
 func (suite *StageSuite) TestCreate() {
-	stage := gitops.NewStage("mystage")
+	stage := NewStage("mystage")
 	stage.Versions["app1"] = "1.0.0"
 	err := stage.Create()
 	r := suite.Require()
@@ -64,7 +62,7 @@ func (suite *StageSuite) TestCreate() {
 	r.Len(stage.Versions, 1)
 	r.Equal("1.0.0", stage.Versions["app1"])
 
-	release := gitops.NewRelease("mystage", gitops.StageRelease)
+	release := NewRelease("mystage", StageRelease)
 	r.True(release.Exists())
 	err = release.Read()
 	r.Nil(err)
@@ -75,10 +73,10 @@ func (suite *StageSuite) TestCreate() {
 
 func (suite *StageSuite) TestUpdate() {
 	r := suite.Require()
-	stage := gitops.NewStage("alpha")
+	stage := NewStage("alpha")
 	err := stage.Read()
 	r.Nil(err)
-	release := gitops.NewRelease("alpha", gitops.StageRelease)
+	release := NewRelease("alpha", StageRelease)
 	err = stage.Read()
 	r.Nil(err)
 
@@ -105,7 +103,7 @@ func (suite *StageSuite) TestUpdate_NotReadFirst() {
 	err := suite.stage.Update()
 	r := suite.Require()
 	r.NotNil(err)
-	r.Equal(gitops.ResourceUpdatedWithoutReadingErr, err)
+	r.Equal(ResourceUpdatedWithoutReadingErr, err)
 }
 
 func TestStageTestSuite(t *testing.T) {

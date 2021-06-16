@@ -1,10 +1,9 @@
-package list_test
+package list
 
 import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
-	"gosh/list"
-	"gosh/test"
+	"gosh/gitops"
 	"testing"
 )
 
@@ -14,7 +13,7 @@ type OutputFormatSuite struct {
 }
 
 func (suite *OutputFormatSuite) SetupSuite() {
-	test.SetupWorkingDir(suite.Suite)
+	gitops.TestsSetupWorkingDir(suite.Suite)
 	//test.CreateTestAppGroup(suite.Suite, "test")
 	suite.versions = map[string]string{}
 	suite.versions["app1"] = "1.0.0"
@@ -23,15 +22,15 @@ func (suite *OutputFormatSuite) SetupSuite() {
 }
 
 func (suite *OutputFormatSuite) TestRenderUnsupportedOutputFormat() {
-	output, err := list.Render("unsupported", suite.versions)
+	output, err := Render("unsupported", suite.versions)
 	r := suite.Require()
 	r.Empty(output)
 	r.NotNil(err)
-	r.Equal(list.UnsupportedOutputFormatErr, err)
+	r.Equal(UnsupportedOutputFormatErr, err)
 }
 
 func (suite *OutputFormatSuite) TestRenderYaml() {
-	output, err := list.Render("yaml", suite.versions)
+	output, err := Render("yaml", suite.versions)
 	r := suite.Require()
 	r.NotEmpty(output)
 	r.Nil(err)
@@ -43,7 +42,7 @@ app3: 3.0.0
 }
 
 func (suite *OutputFormatSuite) TestRenderProperties() {
-	output, err := list.Render("properties", suite.versions)
+	output, err := Render("properties", suite.versions)
 	r := suite.Require()
 	r.NotEmpty(output)
 	r.Nil(err)

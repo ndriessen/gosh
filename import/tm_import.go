@@ -3,6 +3,7 @@ package gosh_import
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"gosh/gitops"
 	"gosh/log"
 	"io/ioutil"
@@ -21,9 +22,9 @@ func (p *TmImportPlugin) Name() string {
 	return "trendminer"
 }
 
-func (p *TmImportPlugin) Import(apps bool, stages bool, releases bool) (err error) {
+func (p *TmImportPlugin) Import(apps bool, stages bool, releases bool, appTemplateName string) (err error) {
 	if apps {
-		err = importProjects()
+		err = importApps(appTemplateName)
 	}
 	if err == nil && stages {
 		err = importVersions()
@@ -149,14 +150,14 @@ func readUrl(url string) (data []byte, err error) {
 				return nil, err
 			}
 		} else {
-			return nil, errors.New("received " + string(resp.StatusCode) + " response")
+			return nil, errors.New("received " + fmt.Sprint(resp.StatusCode) + " response")
 		}
 	} else {
 		return nil, err
 	}
 }
 
-func importProjects() error {
+func importApps(appTemplateName string) error {
 	if data, err := readUrl("http://versions.trendminer.net/projects"); err == nil {
 		log.Tracef("received response: %s", string(data))
 		var p = new([]interface{})
@@ -172,13 +173,13 @@ func importProjects() error {
 				}
 				app.Properties["groupId"] = project.(map[string]interface{})["groupId"].(string)
 				app.Properties["artifactId"] = project.(map[string]interface{})["artifactId"].(string)
-				if err = app.CreateFromTemplate("tm-app"); err == nil {
+				if err = app.CreateFromTemplate(appTemplateName); err == nil {
 					log.Infof("Imported app %s in group %s\n", name, projectType)
 				} else {
 					_ = log.Errf(err, "Error importing app %s", name)
 				}
 			}
-			return nil
+			return err
 		} else {
 			return log.Errf(err, "Error importing apps")
 		}

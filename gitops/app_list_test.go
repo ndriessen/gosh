@@ -1,40 +1,38 @@
-package gitops_test
+package gitops
 
 import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
-	"gosh/gitops"
-	"gosh/test"
 	"testing"
 )
 
 type VersionsListSuite struct {
 	suite.Suite
-	testStage *gitops.Stage
+	testStage *Stage
 }
 
 func (suite *VersionsListSuite) SetupSuite() {
-	test.SetupWorkingDir(suite.Suite)
-	test.CreateTestAppGroup(suite.Suite, "test")
+	TestsSetupWorkingDir(suite.Suite)
+	CreateTestAppGroup(suite.Suite, "test")
 	versions := map[string]string{}
 	versions["app1"] = "1.0.0"
 	versions["app2"] = "2.0.0"
 	versions["app3"] = "3.0.0"
 
-	suite.testStage = gitops.NewStage("alpha")
+	suite.testStage = NewStage("alpha")
 	suite.testStage.Versions = versions
 
 }
 
 func (suite *VersionsListSuite) TestGetVersionsNoFilter() {
-	v := gitops.GetVersions(suite.testStage, "", "")
+	v := GetVersions(suite.testStage, "", "")
 	r := suite.Require()
 	r.NotNil(v)
 	r.Len(v, 3)
 }
 
 func (suite *VersionsListSuite) TestGetVersionsBothFilters() {
-	v := gitops.GetVersions(suite.testStage, "test", "app1")
+	v := GetVersions(suite.testStage, "test", "app1")
 	r := suite.Require()
 	r.NotNil(v)
 	r.Len(v, 1)
@@ -44,7 +42,7 @@ func (suite *VersionsListSuite) TestGetVersionsBothFilters() {
 }
 
 func (suite *VersionsListSuite) TestGetVersionsAppFilter() {
-	v := gitops.GetVersions(suite.testStage, "", "app1")
+	v := GetVersions(suite.testStage, "", "app1")
 	r := suite.Require()
 	r.NotNil(v)
 	r.Len(v, 1)
@@ -54,7 +52,7 @@ func (suite *VersionsListSuite) TestGetVersionsAppFilter() {
 }
 
 func (suite *VersionsListSuite) TestGetVersionsGroupFilter() {
-	v := gitops.GetVersions(suite.testStage, "test", "")
+	v := GetVersions(suite.testStage, "test", "")
 	r := suite.Require()
 	r.NotNil(v)
 	r.Len(v, 2)

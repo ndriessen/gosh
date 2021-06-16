@@ -12,9 +12,12 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "gosh",
 		Short: "Gosh or GitOps Shell offer convenience for interacting with a deployment repository based on GitOps concepts.",
-		PreRun: func(cmd *cobra.Command, args []string) {
-
-		},
+		//PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		//	log.Debug("Pre-run init")
+		//	if cmd != initCmd && cmd != initNewCmd {
+		//		git.InitializeGit(false)
+		//	}
+		//},
 	}
 )
 

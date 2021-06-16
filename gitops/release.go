@@ -47,7 +47,7 @@ func NewReleaseFromFullName(fullName string) (*Release, error) {
 		}
 		return NewRelease(name, t), nil
 	} else {
-		return nil, log.Errf(err, "Unsupported release type", parts[0])
+		return nil, log.Errf(err, "Unsupported release type %s", parts[0])
 	}
 }
 

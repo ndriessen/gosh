@@ -1,10 +1,8 @@
-package gitops_test
+package gitops
 
 import (
 	"github.com/Flaque/filet"
 	"github.com/stretchr/testify/suite"
-	"gosh/gitops"
-	"gosh/test"
 	"gosh/util"
 	"path/filepath"
 	"testing"
@@ -16,8 +14,8 @@ type AppGroupSuite struct {
 }
 
 func (suite *AppGroupSuite) SetupSuite() {
-	test.SetupWorkingDir(suite.Suite)
-	test.CreateTestAppGroup(suite.Suite, "test")
+	TestsSetupWorkingDir(suite.Suite)
+	CreateTestAppGroup(suite.Suite, "test")
 }
 
 func (suite *AppGroupSuite) TearDownSuite() {
@@ -25,27 +23,27 @@ func (suite *AppGroupSuite) TearDownSuite() {
 }
 
 func (suite *AppGroupSuite) TestNewAppGroup() {
-	group := gitops.NewAppGroup("test")
+	group := NewAppGroup("test")
 	r := suite.Require()
 	r.Equal("test", group.Name)
 }
 
 func (suite *AppGroupSuite) TestGetFilePath() {
-	group := gitops.NewAppGroup("test")
+	group := NewAppGroup("test")
 	r := suite.Require()
 	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test.yml"), group.GetFilePath())
 }
 
 func (suite *AppGroupSuite) TestGetFolderPath() {
-	group := gitops.NewAppGroup("test")
+	group := NewAppGroup("test")
 	r := suite.Require()
 	r.Equal(filepath.Join(util.Context.WorkingDir, "inventory/classes/apps/test"), group.GetFolderPath())
 }
 
 func (suite *AppGroupSuite) TestCreate() {
-	group := gitops.NewAppGroup("my-group", &gitops.App{Name: "app1"}, &gitops.App{Name: "app2"})
+	group := NewAppGroup("my-group", &App{Name: "app1"}, &App{Name: "app2"})
 	err := group.Create()
-	f, _ := gitops.ReadKapitanFile(group.GetFilePath())
+	f, _ := ReadKapitanFile(group.GetFilePath())
 	r := suite.Require()
 	r.Nil(err)
 	r.Len(f.Classes, 2)
@@ -54,7 +52,7 @@ func (suite *AppGroupSuite) TestCreate() {
 }
 
 func (suite *AppGroupSuite) TestRead() {
-	group := gitops.NewAppGroup("test")
+	group := NewAppGroup("test")
 	err := group.Read()
 	r := suite.Require()
 	r.Nil(err)

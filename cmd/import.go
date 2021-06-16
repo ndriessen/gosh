@@ -26,7 +26,8 @@ var (
 			apps := strings.Contains(argList, "apps") || strings.Contains(argList, all)
 			stages := strings.Contains(argList, "stages") || strings.Contains(argList, all)
 			releases := strings.Contains(argList, "releases") || strings.Contains(argList, all)
-			if err := gosh_import.Import(name, apps, stages, releases); err != nil {
+			template := GetStringFlag(cmd, TemplateFlag, "")
+			if err := gosh_import.Import(name, apps, stages, releases, template); err != nil {
 				log.Fatal(err, "error running import with plugin %s", name)
 			}
 		},
@@ -34,5 +35,6 @@ var (
 )
 
 func init() {
+	AddTemplateFlag(importCmd)
 	rootCmd.AddCommand(importCmd)
 }
