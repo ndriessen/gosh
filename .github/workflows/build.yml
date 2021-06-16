@@ -28,17 +28,13 @@ jobs:
         run: |
           go vet -json -c=3 . > vet-results.json
 
-      - name: Upload Vet report
-        uses: actions/upload-artifact@v2
-        with:
-          name: Vetting results
-          path: vet-results.json
-
       - name: Run testing
         run: go test -json ./... > test-results.json
 
-      - name: Upload test report
+      - name: Upload Reports
         uses: actions/upload-artifact@v2
         with:
-          name: Test results
-          path: test-results.json
+          name: Reports
+          path: |
+            test-results.json
+            vet-results.json
