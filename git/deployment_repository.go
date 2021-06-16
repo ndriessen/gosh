@@ -81,28 +81,15 @@ func NewDeploymentRepository(cloneIfEmpty bool) (*DeploymentRepository, error) {
 			log.Fatal(errors.New("your working directory is empty, please initialize it first using gosh init"), "Empty working directory")
 		}
 	} else {
-		if err := repo.openWorkingDirAsGitRepo(); err != nil {
+		if err := repo.OpenWorkingDir(); err != nil {
 			return nil, err
 		}
-		if repo.isValidRepository() {
-			//is a valid deployment repo, pull changes
-			if err := repo.Pull(); err != nil && err != git.NoErrAlreadyUpToDate {
-				return nil, err
-			}
-		} else {
-			return nil, log.Errf(InvalidDeploymentRepoErr, "The working dir %s is not empty and is not pointing to the deployment repo %s", util.Context.WorkingDir, util.Config.Url)
+		//is a valid deployment repo, pull changes
+		if err := repo.Pull(); err != nil && err != git.NoErrAlreadyUpToDate {
+			return nil, err
 		}
 	}
 	return repo, nil
-}
-
-func (repo *DeploymentRepository) openWorkingDirAsGitRepo() error {
-	if gitRepo, err := git.PlainOpen(util.Context.WorkingDir); err == nil {
-		repo.git = gitRepo
-		return nil
-	} else {
-		return log.Errf(err, "Error opening working dir as git repository")
-	}
 }
 
 func initSsh(config *util.GoshConfig) (*ssh.PublicKeys, error) {
@@ -206,9 +193,11 @@ func (repo *DeploymentRepository) Pull() error {
 }
 
 func (repo *DeploymentRepository) Push() error {
+	log.Fatal(errors.New("not implemented"), "not implemented")
 	return nil
 }
 
 func (repo *DeploymentRepository) Commit(msg string) error {
+	log.Fatal(errors.New("not implemented"), "not implemented")
 	return nil
 }

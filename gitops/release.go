@@ -55,6 +55,37 @@ func (release *Release) Create() error {
 	return create(release)
 }
 
+func (release *Release) CreateFromStage(stageName string) error {
+	stage := NewStage(stageName)
+	if stage.Exists() {
+		if err := stage.Read(); err != nil {
+			release.Versions = stage.Versions
+			return release.Create()
+		} else {
+			return log.Errf(err, "Stage %s cannot be read to base release on", stageName)
+		}
+	} else {
+		return log.Errf(ResourceDoesNotExistErr, "Stage %s does not exist", stageName)
+	}
+}
+
+func (release *Release) CreateFromRelease(releaseName string) error {
+	if fromRelease, err := NewReleaseFromFullName(releaseName); err == nil {
+		if fromRelease.Exists() {
+			if err = fromRelease.Read(); err != nil {
+				release.Versions = fromRelease.Versions
+				return release.Create()
+			} else {
+				return log.Errf(err, "Release %s cannot be read to base release on", releaseName)
+			}
+		} else {
+			return log.Errf(ResourceDoesNotExistErr, "Release %s does not exist", releaseName)
+		}
+	} else {
+		return log.Errf(err, "Invalid release name specified %s", releaseName)
+	}
+}
+
 func (release *Release) Read() error {
 	return read(release)
 }

@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	GOSH_CONFIG_DIR          = ".gosh"
-	GOSH_DEFAULT_CONFIG_FILE = "$HOME/" + GOSH_CONFIG_DIR + "/" + GOSH_CONFIG_FILE
-	GOSH_CONFIG_FILE         = "config.yml"
+	GoshConfigDir         = ".gosh"
+	GoshDefaultConfigFile = "$HOME/" + GoshConfigDir + "/" + GoshConfigFile
+	GoshConfigFile        = "config.yml"
 )
 
 type DeploymentRepository struct {
@@ -36,7 +36,7 @@ var Config = &GoshConfig{}
 
 func InitializeConfig() {
 	v := viper.New()
-	projectConfigFile := filepath.Join(Context.WorkingDir, GOSH_CONFIG_DIR, GOSH_CONFIG_FILE)
+	projectConfigFile := filepath.Join(Context.WorkingDir, GoshConfigDir, GoshConfigFile)
 	if _, err := os.Stat(projectConfigFile); err == nil {
 		v.SetConfigFile(projectConfigFile)
 		if err := v.ReadInConfig(); err != nil {
@@ -49,7 +49,7 @@ func InitializeConfig() {
 	}
 	viper.SetEnvPrefix("GOSH")
 	viper.AutomaticEnv()
-	viper.SetConfigFile(os.ExpandEnv(GOSH_DEFAULT_CONFIG_FILE))
+	viper.SetConfigFile(os.ExpandEnv(GoshDefaultConfigFile))
 	if err := viper.ReadInConfig(); err == nil {
 		if err = viper.MergeConfigMap(v.AllSettings()); err != nil {
 			log.Fatal(err, "Error merging configuration")
