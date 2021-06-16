@@ -26,9 +26,9 @@ jobs:
 
       - name: Build binaries
         run: |
-          GOOS=darwin GOARCH=amd64 go build . -o bin/gosh-darwin
-          GOOS=linux GOARCH=amd64 go build . -o bin/gosh-linux
-          GOOS=windows GOARCH=amd64 go build . -o bin/gosh.exe
+          GOOS=darwin GOARCH=amd64 go build -o bin/gosh-darwin
+          GOOS=linux GOARCH=amd64 go build -o bin/gosh-linux
+          GOOS=windows GOARCH=amd64 go build -o bin/gosh.exe
 
       - name: Semantic Release
         id: semantic
