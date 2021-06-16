@@ -24,10 +24,21 @@ jobs:
       - name: Run build
         run: go build .
 
-      - name: Run vet & lint
+      - name: Run vetting/linting
         run: |
-          go vet .
-          golint .
+          go vet -json -c=3 . > vet-results.json
+
+      - name: Upload Vet report
+        uses: actions/upload-artifact@v2
+        with:
+          name: Vetting results
+          path: vet-results.json
 
       - name: Run testing
-        run: go test -json ./...
+        run: go test -json ./... > test-results.json
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: Test results
+          path: test-results.json
