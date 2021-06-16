@@ -6,10 +6,8 @@ on:
       - master
 
 jobs:
-  release:
+  build-binaries:
     runs-on: ubuntu-latest
-    outputs:
-      release_version: ${{steps.semantic.outputs.new_release_version}}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -29,7 +27,21 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -o bin/gosh-darwin
           GOOS=linux GOARCH=amd64 go build -o bin/gosh-linux
           GOOS=windows GOARCH=amd64 go build -o bin/gosh.exe
-
+  release:
+    outputs:
+      release_version: ${{steps.semantic.outputs.new_release_version}}
+    needs:
+      - build-binaries
+    runs-on: ubuntu-latest
+    container:
+      image: node:12.18.1-buster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: npm install conventional-changelog-conventionalcommits
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v2
