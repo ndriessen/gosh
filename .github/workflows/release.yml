@@ -1,0 +1,40 @@
+name: Create a new release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    outputs:
+      release_version: ${{steps.semantic.outputs.new_release_version}}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
+      - name: Install dependencies
+        run: |
+          go mod download
+
+      - name: Build binaries
+        run: |
+          GOOS=darwin GOARCH=adm64 go build . -o bin/gosh-darwin
+          GOOS=linux GOARCH=adm64 go build . -o bin/gosh-linux
+          GOOS=windows GOARCH=adm64 go build . -o bin/gosh.exe
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v2
+        with:
+          semantic_version: 17.3.7
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}

@@ -1,0 +1,43 @@
+name: Build Gosh
+
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
+      - name: Install dependencies
+        run: |
+          go mod download
+
+      - name: Run vetting/linting
+        run: |
+          go vet -json -c=3 . > vet-results.json
+
+      - name: Run testing
+        run: go test -json ./... > test-results.json
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: Reports
+          path: |
+            test-results.json
+            vet-results.json
+        if: always()
+
+      - name: Compile
+        run: go build .
