@@ -23,9 +23,6 @@ jobs:
         run: |
           go mod download
 
-      - name: Run build
-        run: go build .
-
       - name: Run vetting/linting
         run: |
           go vet -json -c=3 . > vet-results.json
@@ -40,3 +37,7 @@ jobs:
           path: |
             test-results.json
             vet-results.json
+        if: always()
+
+      - name: Compile
+        run: go build .
