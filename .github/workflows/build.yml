@@ -58,10 +58,10 @@ jobs:
         id: artifact
         run: |
           if [[ "${{ matrix.goos }}" -eq "windows" ]]; then
-            $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
+            artifact="gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
             echo "::set-output name=name::$artifact"
           else
-            $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}"
+            artifact="gosh-${{ matrix.goos }}-${{ matrix.goarch }}"
             echo "::set-output name=name::$artifact"
           fi
       - name: Build
@@ -73,7 +73,7 @@ jobs:
       - name: Hash
         id: hash
         run: |
-          $fileHash = sha256sum ${{ steps.artifact.outputs.name }}
+          fileHash=$(sha256sum ${{ steps.artifact.outputs.name }})
           echo $fileHash > bin/${{ steps.artifact.outputs.name }}.sha256
           echo "::set-output name=hash_${{ matrix.goos }}::$fileHash"
       - name: Upload Artifact
