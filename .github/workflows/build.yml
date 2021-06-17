@@ -1,4 +1,4 @@
-name: Build Gosh
+name: "Build Gosh"
 
 on:
   pull_request:
