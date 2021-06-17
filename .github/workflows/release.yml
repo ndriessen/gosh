@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - master
-
+defaults:
+  run:
+    shell: bash
 jobs:
   release:
     outputs:
@@ -68,7 +70,7 @@ jobs:
       - name: Asset name
         id: artifact
         run: |
-          if [[ "${{ matrix.goos }}" == "windows ]]; then
+          if [[ "${{ matrix.goos }}" == "windows" ]]; then
             $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
             echo "::set-output name=name::$artifact"
           else
