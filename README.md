@@ -202,6 +202,8 @@ See [#App Templates]
 
 ## Versions
 
+> TODO: the in-app command line help is much more up-to-date obviously, should we document commands here?
+
 ### List versions
 
 Use `gosh list versions` to list specific version, you can filter on stages, releases, app groups and apps
