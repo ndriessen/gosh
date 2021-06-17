@@ -42,7 +42,7 @@ jobs:
   upload_artifacts:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ needs.prepare.outputs.release_created }}
+    if: ${{ needs.release.outputs.release_created }}
     strategy:
       matrix:
         goos: [ linux, darwin, windows ]
