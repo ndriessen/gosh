@@ -17,18 +17,6 @@ jobs:
     container:
       image: node:12.18.1-buster
     steps:
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: build.yml
-          workflow_conclusion: success
-          commit: ${{github.event.pull_request.head.sha}}
-          name: Binaries
-          path: bin/
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 0
       - name: Install dependencies
         run: npm install conventional-changelog-conventionalcommits
       - name: Semantic Release
@@ -41,14 +29,13 @@ jobs:
       - name: Create Release
         if: ${{steps.semantic.outputs.new_release_published}}
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.semantic.outputs.new_release_version }}
-          release_name: ${{ steps.semantic.outputs.new_release_version }}
-          draft: false
-          prerelease: false
+          tag: v${{ steps.semantic.outputs.new_release_version }}
+          name: ${{ steps.semantic.outputs.new_release_version }}
+          body: ${{ steps.semantic.outputs.new_release_notes }}
 
   upload_artifacts:
     needs: release
