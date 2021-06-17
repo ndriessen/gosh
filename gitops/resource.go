@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gosh/log"
 	"os"
+	"path/filepath"
 )
 
 type Resource interface {
@@ -42,13 +43,19 @@ func create(resource Resource) error {
 	if resource.Exists() {
 		return log.Errf(ResourceAlreadyExistsErr, "The %s '%s' already exists", resource.getResourceType(), resource.getResourceName())
 	}
-	f := resource.mapToKapitanFile()
-	if err := WriteKapitanFile(resource.GetFilePath(), f); err == nil {
-		log.Debugf("Created %s '%s'", resource.getResourceType(), resource.getResourceName())
-		return nil
+	parentDir := filepath.Dir(resource.GetFilePath())
+	if err := os.MkdirAll(parentDir, 0755); err == nil {
+		f := resource.mapToKapitanFile()
+		if err := WriteKapitanFile(resource.GetFilePath(), f); err == nil {
+			log.Debugf("Created %s '%s'", resource.getResourceType(), resource.getResourceName())
+			return nil
+		} else {
+			return log.Errf(err, "Error writing %s file '%s'", resource.getResourceType(), resource.GetFilePath())
+		}
 	} else {
-		return log.Errf(err, "Error writing %s file '%s'", resource.getResourceType(), resource.GetFilePath())
+		return log.Errf(err, "Could not create directory structure %s", resource.GetFilePath())
 	}
+
 }
 
 func read(resource Resource) error {
