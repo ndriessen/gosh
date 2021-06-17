@@ -6,8 +6,10 @@ require (
 	github.com/Flaque/filet v0.0.0-20201012163910-45f684403088
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210512092938-c05353c2d58c // indirect
+	github.com/artdarek/go-unzip v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
+	github.com/otiai10/copy v1.6.0 // indirect
 	github.com/rs/zerolog v1.22.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/cobra v1.1.3
