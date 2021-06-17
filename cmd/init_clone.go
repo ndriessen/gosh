@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"gosh/git"
+	"gosh/log"
 )
 
 var (
@@ -10,8 +11,10 @@ var (
 		Use:  "clone",
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			//url := GetArg(args,0)
-			git.InitializeGit(true)
+			url := GetArg(args, 0)
+			if _, err := git.NewDeploymentRepository(url, true); err != nil {
+				log.Fatal(err, "Error cloning deployment repository in working directory")
+			}
 		},
 	}
 )

@@ -3,11 +3,15 @@ package git
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"github.com/artdarek/go-unzip"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/otiai10/copy"
 	"gosh/log"
 	"gosh/util"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,26 +25,21 @@ type Repository interface {
 	CommitChanges(msg string) error
 }
 
+const (
+	defaultDeploymentRepoTemplateUrl = "https://github.com/ndriessen/gosh-git-template/archive/refs/heads/master.zip"
+	defaultUnzipDirectory            = "gosh-git-template-master"
+)
+
 var (
 	WorkingDirNotEmptyErr    = errors.New("working dir is not empty")
 	WorkingDirEmptyErr       = errors.New("your working directory is empty, please initialize it first using gosh init")
 	InvalidDeploymentRepoErr = errors.New("working dir does not point to configured deployment repo or has an invalid structure")
-	ValidationErr            = errors.New("invalid struct, please use NewDeploymentRepository() to create one")
-	DeploymentRepo           *DeploymentRepository
 )
 
 type DeploymentRepository struct {
 	url        string
 	publicKeys *ssh.PublicKeys
 	git        *git.Repository
-}
-
-func InitializeGit(cloneIfEmpty bool) {
-	if repo, err := NewDeploymentRepository(cloneIfEmpty); err != nil {
-		log.Fatal(err, "Unable to initialize deployment repository in working directory")
-	} else {
-		DeploymentRepo = repo
-	}
 }
 
 func isValid(repo *DeploymentRepository) bool {
@@ -62,11 +61,24 @@ func (repo *DeploymentRepository) OpenWorkingDir() error {
 	}
 }
 
-func NewDeploymentRepository(cloneIfEmpty bool) (*DeploymentRepository, error) {
+func (repo *DeploymentRepository) InitFromTemplate() error {
+	if file, err := downloadTemplate(); err == nil {
+		if err = unzipTemplate(file); err == nil {
+			_ = os.Remove(file)
+			return nil
+		} else {
+			return log.Err(err, "Could not extract template repository contents")
+		}
+	} else {
+		return log.Errf(err, "Could not download template repository contents")
+	}
+}
+
+func NewDeploymentRepository(url string, cloneIfEmpty bool) (*DeploymentRepository, error) {
 	var repo *DeploymentRepository
 	if publicKeys, err := initSsh(util.Config); err == nil {
 		repo = &DeploymentRepository{
-			url:        util.Config.Url,
+			url:        url,
 			publicKeys: publicKeys,
 		}
 	} else {
@@ -200,4 +212,37 @@ func (repo *DeploymentRepository) Push() error {
 func (repo *DeploymentRepository) Commit(msg string) error {
 	log.Fatal(errors.New("not implemented"), "not implemented")
 	return nil
+}
+
+func downloadTemplate() (file string, err error) {
+	var client http.Client
+	if resp, err := client.Get(defaultDeploymentRepoTemplateUrl); err == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			if out, err := os.CreateTemp("", "gosh_git_template_*.zip"); err == nil {
+				defer out.Close()
+				_, err = io.Copy(out, resp.Body)
+				return out.Name(), err
+			} else {
+				return "", err
+			}
+		} else {
+			return "", errors.New("received " + fmt.Sprint(resp.StatusCode) + " response")
+		}
+	} else {
+		return "", err
+	}
+}
+
+func unzipTemplate(src string) error {
+	if tmpDir, err := os.MkdirTemp("", "*"); err == nil {
+		uz := unzip.New(src, tmpDir)
+		if err = uz.Extract(); err == nil {
+			err = copy.Copy(filepath.Join(tmpDir, defaultUnzipDirectory), util.Context.WorkingDir)
+			_ = os.RemoveAll(tmpDir)
+		}
+		return err
+	} else {
+		return err
+	}
 }
