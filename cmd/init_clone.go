@@ -7,8 +7,10 @@ import (
 
 var (
 	initCloneCmd = &cobra.Command{
-		Use: "clone",
+		Use:  "clone",
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			//url := GetArg(args,0)
 			git.InitializeGit(true)
 		},
 	}
