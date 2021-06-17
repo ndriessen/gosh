@@ -42,6 +42,11 @@ func importVersions() error {
 	stages := map[string]string{"TESTED": "alpha", "PUBLISHED": "stable", "RELEASED": "released"}
 	for oldStage, stageName := range stages {
 		stage := gitops.NewStage(stageName)
+		if !stage.Exists() {
+			if err := stage.Create(); err != nil {
+				log.Fatal(err, "Could not create stage %s", stageName)
+			}
+		}
 		if err := stage.Read(); err != nil {
 			log.Fatal(err, "Could not load stage %s", stageName)
 		}
