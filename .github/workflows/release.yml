@@ -1,10 +1,12 @@
-name: Create a new release
+name: "Release Gosh"
 
 on:
   push:
     branches:
       - master
-
+defaults:
+  run:
+    shell: bash
 jobs:
   release:
     outputs:
@@ -57,24 +59,36 @@ jobs:
         goos: [ linux, darwin, windows ]
         goarch: [ amd64 ]
     steps:
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
+      - name: Install Go
+        uses: actions/setup-go@v2
         with:
-          workflow: build.yml
-          workflow_conclusion: success
-          commit: ${{ github.sha }}
-          name: Binaries
-          path: bin/
+          go-version: 1.16
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Asset name
         id: artifact
         run: |
-          if [[ "${{ matrix.goos }}" == "windows ]]; then
-            $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
+          if [[ "${{ matrix.goos }}" == "windows" ]]; then
+            artifact="gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
             echo "::set-output name=name::$artifact"
           else
-            $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}"
+            artifact="gosh-${{ matrix.goos }}-${{ matrix.goarch }}"
             echo "::set-output name=name::$artifact"
           fi
+      - name: Build
+        id: build
+        run: go build -o bin/${{ steps.artifact.outputs.name }} -ldflags="-X 'main.Version=${{ needs.release.outputs.version }}'"
+        env:
+          GOARCH: ${{ matrix.goarch }}
+          GOOS: ${{ matrix.goos }}
+      - name: Hash
+        id: hash
+        run: |
+          fileHash=$(sha256sum bin/${{ steps.artifact.outputs.name }})
+          echo $fileHash > bin/${{ steps.artifact.outputs.name }}.sha256
+          echo "::set-output name=hash_${{ matrix.goos }}::$fileHash"
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:

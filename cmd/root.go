@@ -23,7 +23,7 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable verbose mode to output logging (default: false)")
-	rootCmd.PersistentFlags().BoolP("trace", "t", false, "enable trace logging, only needed for development/testing (default: false)")
+	rootCmd.PersistentFlags().BoolP("trace", "V", false, "enable trace logging, only needed for development/testing (default: false)")
 	rootCmd.PersistentFlags().StringP("workdir", "w", "", "specify the working directory for gosh (default: $PWD)")
 
 	cobra.OnInitialize(handleGlobalFlags)

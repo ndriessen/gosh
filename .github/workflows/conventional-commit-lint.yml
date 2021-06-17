@@ -1,4 +1,4 @@
-name: Validate Commit Message
+name: "Validate Commit Message"
 
 on:
   push:
