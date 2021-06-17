@@ -38,9 +38,6 @@ jobs:
             vet-results.json
         if: always()
 
-      - name: Compile
-        run: go build .
-
   artifacts:
     needs: test
     strategy:
@@ -60,7 +57,7 @@ jobs:
       - name: Asset name
         id: artifact
         run: |
-          if [[ "${{ matrix.goos }}" == "windows ]]; then
+          if [[ "${{ matrix.goos }}" eq "windows" ]]; then
             $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
             echo "::set-output name=name::$artifact"
           else
@@ -77,7 +74,7 @@ jobs:
         id: hash
         run: |
           $fileHash = sha256sum ${{ steps.artifact.outputs.name }}
-          echo $fileHash > ${{ steps.artifact.outputs.name }}.sha256
+          echo $fileHash > bin/${{ steps.artifact.outputs.name }}.sha256
           echo "::set-output name=hash_${{ matrix.goos }}::$fileHash"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
