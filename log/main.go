@@ -118,5 +118,5 @@ func init() {
 	output.FormatCaller = func(i interface{}) string {
 		return strings.ToUpper(fmt.Sprintf("%-60s |", i))
 	}
-	log = zerolog.New(output).With().Caller().Logger()
+	log = zerolog.New(output)
 }

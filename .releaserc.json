@@ -121,16 +121,6 @@
           "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
         }
       }
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "assets": [
-          {"path": "dist/gosh-darwin", "label": "MacOS"},
-          {"path": "dist/gosh-linux", "label": "Linux"},
-          {"path": "dist/gosh.exe", "label": "Windows"}
-        ]
-      }
     ]
   ],
   "branches": ["+([0-9])?(.{+([0-9]),x}).x", "master"]

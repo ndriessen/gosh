@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"gosh/gitops"
-	"log"
+	"gosh/log"
 )
 
 const (
@@ -22,16 +22,18 @@ var (
 					switch flag {
 					case fromStageFlag:
 						if err = release.CreateFromStage(value); err != nil {
-							log.Fatalf("Error creating release %s from stage %s (error: %v)", releaseName, value, err)
+							log.Fatal(err, "Error creating release %s from stage %s", releaseName, value)
 						}
 					case fromReleaseFlag:
 						if err = release.CreateFromRelease(value); err != nil {
-							log.Fatalf("Error creating release %s from release %s (error: %v)", releaseName, value, err)
+							log.Fatal(err, "Error creating release %s from release %s", releaseName, value)
 						}
 					}
+				} else {
+					log.Fatal(err, "Please specify either --from-stage or --from-release")
 				}
 			} else {
-				log.Fatalln("Error creating release", releaseName, err)
+				log.Fatal(err, "Error creating release %s", releaseName)
 			}
 		},
 	}

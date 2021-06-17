@@ -44,7 +44,7 @@ func create(resource Resource) error {
 	}
 	f := resource.mapToKapitanFile()
 	if err := WriteKapitanFile(resource.GetFilePath(), f); err == nil {
-		log.Infof("Created %s '%s", resource.getResourceType(), resource.getResourceName())
+		log.Debugf("Created %s '%s'", resource.getResourceType(), resource.getResourceName())
 		return nil
 	} else {
 		return log.Errf(err, "Error writing %s file '%s'", resource.getResourceType(), resource.GetFilePath())

@@ -82,10 +82,12 @@ func (stage *Stage) Update() error {
 func (stage *Stage) mapToKapitanFile() *kapitanFile {
 	log.Tracef("Mapping stage %s to kapitan file: %+v", stage.Name, stage)
 	f := newKapitanFile()
-	f.Parameters[stage.Name] = make(map[string]string, 0)
-	props := f.Parameters[stage.Name].(map[string]string)
-	for key, value := range stage.Versions {
-		props[key] = value
+	if stage.Versions != nil && len(stage.Versions) > 0 {
+		f.Parameters[stage.Name] = make(map[string]string, 0)
+		props := f.Parameters[stage.Name].(map[string]string)
+		for key, value := range stage.Versions {
+			props[key] = value
+		}
 	}
 	log.Tracef("Mapped stage %s to kapitan file, result: %+v", stage.Name, f)
 	return f

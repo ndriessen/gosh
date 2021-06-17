@@ -6,40 +6,27 @@ on:
       - master
 
 jobs:
-  build-binaries:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.3'
-
-      - name: Install dependencies
-        run: |
-          go mod download
-
-      - name: Build binaries
-        run: |
-          GOOS=darwin GOARCH=amd64 go build -o bin/gosh-darwin
-          GOOS=linux GOARCH=amd64 go build -o bin/gosh-linux
-          GOOS=windows GOARCH=amd64 go build -o bin/gosh.exe
   release:
     outputs:
-      release_version: ${{steps.semantic.outputs.new_release_version}}
-    needs:
-      - build-binaries
+      version: ${{steps.semantic.outputs.new_release_version}}
+      release_created: ${{steps.semantic.outputs.new_release_published}}
+      release_upload_url: ${{steps.create_release.outputs.upload_url}}
     runs-on: ubuntu-latest
     container:
       image: node:12.18.1-buster
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
         with:
-          fetch-depth: 0
+          workflow: build.yml
+          workflow_conclusion: success
+          commit: ${{github.event.pull_request.head.sha}}
+          name: Binaries
+          path: bin/
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
       - name: Install dependencies
         run: npm install conventional-changelog-conventionalcommits
       - name: Semantic Release
@@ -48,4 +35,61 @@ jobs:
         with:
           semantic_version: 17.3.7
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        if: ${{steps.semantic.outputs.new_release_published}}
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.semantic.outputs.new_release_version }}
+          release_name: ${{ steps.semantic.outputs.new_release_version }}
+          draft: false
+          prerelease: false
+
+  upload_artifacts:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ needs.prepare.outputs.release_created }}
+    strategy:
+      matrix:
+        goos: [ linux, darwin, windows ]
+        goarch: [ amd64 ]
+    steps:
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build.yml
+          workflow_conclusion: success
+          commit: ${{ github.sha }}
+          name: Binaries
+          path: bin/
+      - name: Asset name
+        id: artifact
+        run: |
+          if [[ "${{ matrix.goos }}" == "windows ]]; then
+            $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}.exe"
+            echo "::set-output name=name::$artifact"
+          else
+            $artifact = "gosh-${{ matrix.goos }}-${{ matrix.goarch }}"
+            echo "::set-output name=name::$artifact"
+          fi
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release_upload_url }}
+          asset_path: bin/${{ steps.artifact.outputs.name }}
+          asset_name: ${{ steps.artifact.outputs.name }}
+          asset_content_type: application/octet-stream
+      - name: Upload Hash Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release_upload_url }}
+          asset_path: bin/${{ steps.artifact.outputs.name }}.sha256
+          asset_name: ${{ steps.artifact.outputs.name }}.sha256
+          asset_content_type: text/plain
