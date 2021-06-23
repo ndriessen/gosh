@@ -59,7 +59,7 @@ func (f *PropertiesListOutputFormat) Render(list map[string]string) (string, err
 	sort.Strings(keys)
 	data := ""
 	for _, k := range keys {
-		data += fmt.Sprintf("%s=%s\n", k, list[k])
+		data += fmt.Sprintf("%s.version=%s\n", k, list[k])
 	}
 	return data, nil
 }
