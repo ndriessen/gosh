@@ -176,8 +176,12 @@ func importApps(appTemplateName string) error {
 					log.Warnf("App %s already exists... skipping", name)
 					continue
 				}
-				app.Properties["groupId"] = project.(map[string]interface{})["groupId"].(string)
-				app.Properties["artifactId"] = project.(map[string]interface{})["artifactId"].(string)
+				app.Properties["groupId"] = strings.ReplaceAll(project.(map[string]interface{})["groupId"].(string), ".", "/")
+				artifactId := project.(map[string]interface{})["artifactId"].(string)
+				if projectType == "platform" && !strings.HasSuffix(artifactId, "dist") {
+					artifactId += "-dist"
+				}
+				app.Properties["artifactId"] = artifactId
 				if err = app.CreateFromTemplate(appTemplateName); err == nil {
 					log.Infof("Imported app %s in group %s\n", name, projectType)
 				} else {
