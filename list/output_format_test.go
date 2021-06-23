@@ -46,9 +46,9 @@ func (suite *OutputFormatSuite) TestRenderProperties() {
 	r := suite.Require()
 	r.NotEmpty(output)
 	r.Nil(err)
-	expected := `app1=1.0.0
-app2=2.0.0
-app3=3.0.0
+	expected := `app1.version=1.0.0
+app2.version=2.0.0
+app3.version=3.0.0
 `
 	r.Equal(expected, output)
 }
