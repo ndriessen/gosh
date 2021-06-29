@@ -44,8 +44,8 @@ jobs:
     if: ${{ needs.release.outputs.release_created }}
     strategy:
       matrix:
-        goos: [ linux, darwin, windows ]
-        goarch: [ amd64 ]
+        goos: [linux, darwin, windows]
+        goarch: [amd64]
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
