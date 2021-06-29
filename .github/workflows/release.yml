@@ -44,8 +44,8 @@ jobs:
     if: ${{ needs.release.outputs.release_created }}
     strategy:
       matrix:
-        goos: [ linux, darwin, windows ]
-        goarch: [ amd64 ]
+        goos: [linux, darwin, windows]
+        goarch: [amd64]
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
@@ -74,8 +74,8 @@ jobs:
       - name: Hash
         id: hash
         run: |
-          fileHash=$(sha256sum bin/${{ steps.artifact.outputs.name }})
-          echo $fileHash > bin/${{ steps.artifact.outputs.name }}.sha256
+          fileHash=$(cd bin && sha256sum ${{ steps.artifact.outputs.name }})
+          echo "$fileHash" > bin/${{ steps.artifact.outputs.name }}.sha256
           echo "::set-output name=hash_${{ matrix.goos }}::$fileHash"
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
