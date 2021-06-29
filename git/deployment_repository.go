@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/artdarek/go-unzip"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/otiai10/copy"
 	"gosh/log"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Repository interface {
@@ -43,7 +45,7 @@ type DeploymentRepository struct {
 }
 
 func isValid(repo *DeploymentRepository) bool {
-	return repo != nil && repo.url != "" && &repo.publicKeys != nil && &repo.git != nil
+	return repo != nil && &repo.publicKeys != nil && &repo.git != nil
 }
 
 func (repo *DeploymentRepository) OpenWorkingDir() error {
@@ -204,9 +206,34 @@ func (repo *DeploymentRepository) Pull() error {
 	return nil
 }
 
-func (repo *DeploymentRepository) Push() error {
-	log.Fatal(errors.New("not implemented"), "not implemented")
-	return nil
+func (repo *DeploymentRepository) Push(msg string) error {
+	if w, err := repo.git.Worktree(); err == nil {
+		//err = w.AddGlob(filepath.Join("inventory", "classes", "*"))
+		err = w.AddWithOptions(&git.AddOptions{
+			All: true,
+		})
+		if err != nil {
+			return err
+		}
+		if msg == "" {
+			msg = "chore: gosh version changes"
+		}
+		commit, err := w.Commit(msg, &git.CommitOptions{Committer: &object.Signature{
+			Name:  "gosh",
+			Email: "gosh@github.com",
+			When:  time.Now(),
+		}})
+		if err != nil {
+			return err
+		}
+		commitObject, _ := repo.git.CommitObject(commit)
+		log.Debugf("commit: %+v", commitObject)
+
+		err = repo.git.Push(&git.PushOptions{Auth: repo.publicKeys})
+		return err
+	} else {
+		return log.Errf(err, "error pushing changes")
+	}
 }
 
 func (repo *DeploymentRepository) Commit(msg string) error {

@@ -25,7 +25,7 @@ var (
 					GetStringFlag(cmd, OutputFlag, list.DefaultOutputFormat),
 					appList.GetVersions(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0)),
 				); err == nil {
-					fmt.Println(data)
+					fmt.Print(data)
 				} else {
 					log.Fatal(err, "Could not list versions")
 				}
