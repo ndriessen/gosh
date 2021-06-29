@@ -50,7 +50,8 @@ jobs:
       image: docker.io/library/golang:1.16.5-alpine3.14
     steps:
       - name: Install tooling to compile go binary
-        run: apk --no-cache add git gcc musl-dev
+        run: apk --no-cache add git gcc musl-dev bash
+        shell: sh
       - name: Checkout code
         uses: actions/checkout@v2
         with:
