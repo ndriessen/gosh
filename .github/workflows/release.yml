@@ -106,7 +106,7 @@ jobs:
         if: ${{matrix.goos == 'linux'}}
         uses: aevea/action-kaniko@master
         with:
-          image: gosh
+          image: ndriessen/gosh
           registry: ghcr.io
           password: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.release.outputs.version }}
