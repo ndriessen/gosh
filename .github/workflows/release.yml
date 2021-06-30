@@ -102,3 +102,12 @@ jobs:
           asset_path: bin/${{ steps.artifact.outputs.name }}.sha256
           asset_name: ${{ steps.artifact.outputs.name }}.sha256
           asset_content_type: text/plain
+      - name: Create Docker Image
+        if: ${{matrix.goos == linux}}
+        uses: aevea/action-kaniko@master
+        with:
+          image: gosh
+          registry: ghcr.io
+          password: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.release.outputs.version }}
+          tag_with_latest: true
