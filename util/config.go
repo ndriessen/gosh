@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	GoshConfigDir         = ".gosh"
-	GoshDefaultConfigFile = "$HOME/" + GoshConfigDir + "/" + GoshConfigFile
-	GoshConfigFile        = "config.yml"
+	GoshConfigDir  = ".gosh"
+	GoshConfigFile = "config.yml"
 )
 
 type DeploymentRepository struct {
@@ -49,25 +48,34 @@ func InitializeConfig() {
 	}
 	viper.SetEnvPrefix("GOSH")
 	viper.AutomaticEnv()
-	viper.SetConfigFile(os.ExpandEnv(GoshDefaultConfigFile))
-	if err := viper.ReadInConfig(); err == nil {
-		if err = viper.MergeConfigMap(v.AllSettings()); err != nil {
-			log.Fatal(err, "Error merging configuration")
+	homedir, _ := os.UserHomeDir()
+	configFile := filepath.Join(homedir, GoshConfigDir, GoshConfigFile)
+	viper.SetConfigFile(configFile)
+	if _, err := os.Stat(configFile); err == nil {
+		if err := viper.ReadInConfig(); err == nil {
+			if err = viper.MergeConfigMap(v.AllSettings()); err != nil {
+				log.Fatal(err, "Error merging configuration")
+			}
+		} else {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				log.Fatal(err, "Could not read configuration")
+			}
 		}
-	} else {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			log.Fatal(err, "Could not read configuration")
+		if viper.IsSet("deploymentrepository") {
+			Config.DeploymentRepository = newDeploymentRepository(viper.Get("deploymentrepository").(map[string]interface{}))
 		}
+		Config.ArtifactRepositories = make(map[string]map[string]string, 0)
+		if viper.IsSet("artifactrepositories") {
+			settings := viper.Get("artifactrepositories").(map[string]interface{})
+			for name, urls := range settings {
+				result := map[string]string{}
+				for k, v := range urls.(map[string]interface{}) {
+					result[k] = v.(string)
+				}
+				Config.ArtifactRepositories[name] = result
+			}
+		}
+		log.Debugf("Loaded configuration %+v", Config)
 	}
-	Config.DeploymentRepository = newDeploymentRepository(viper.Get("deploymentrepository").(map[string]interface{}))
-	Config.ArtifactRepositories = make(map[string]map[string]string, 0)
-	settings := viper.Get("artifactrepositories").(map[string]interface{})
-	for name, urls := range settings {
-		result := map[string]string{}
-		for k, v := range urls.(map[string]interface{}) {
-			result[k] = v.(string)
-		}
-		Config.ArtifactRepositories[name] = result
-	}
-	log.Debugf("Loaded configuration %+v", Config)
+
 }
