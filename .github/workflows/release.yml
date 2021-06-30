@@ -103,7 +103,7 @@ jobs:
           asset_name: ${{ steps.artifact.outputs.name }}.sha256
           asset_content_type: text/plain
       - name: Create Docker Image
-        if: ${{matrix.goos == linux}}
+        if: ${{matrix.goos == "linux"}}
         uses: aevea/action-kaniko@master
         with:
           image: gosh
