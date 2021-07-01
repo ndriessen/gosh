@@ -58,7 +58,6 @@ func init() {
 	releaseContentsTemplate, _ = template.New("release").Parse(testReleaseFileContents)
 	testConfig = &util.GoshConfig{
 		DeploymentRepository: util.DeploymentRepository{
-			Url:               "",
 			SshKey:            "",
 			SshPrivateKeyPass: "",
 		},
