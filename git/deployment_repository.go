@@ -147,7 +147,7 @@ func (repo *DeploymentRepository) isValidRepository() bool {
 					if remotes, err := repo.git.Remotes(); err == nil {
 						for _, remote := range remotes {
 							for _, url := range remote.Config().URLs {
-								if strings.ToLower(url) == strings.ToLower(util.Config.Url) {
+								if strings.ToLower(url) == strings.ToLower(repo.url) {
 									return true
 								}
 							}
@@ -175,9 +175,9 @@ func (repo *DeploymentRepository) Clone() error {
 	if !isDirectoryEmpty(util.Context.WorkingDir) {
 		return WorkingDirNotEmptyErr
 	}
-	log.Infof("Cloning deployment repo %s into %s", util.Config.Url, util.Context.WorkingDir)
+	log.Infof("Cloning deployment repo %s into %s", repo.url, util.Context.WorkingDir)
 	if gitRepo, err := git.PlainClone(util.Context.WorkingDir, false, &git.CloneOptions{
-		URL:               util.Config.Url,
+		URL:               repo.url,
 		Auth:              repo.publicKeys,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 		Depth:             1,

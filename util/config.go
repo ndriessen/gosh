@@ -13,14 +13,12 @@ const (
 )
 
 type DeploymentRepository struct {
-	Url               string
 	SshKey            string
 	SshPrivateKeyPass string
 }
 
 func newDeploymentRepository(settings map[string]interface{}) DeploymentRepository {
 	return DeploymentRepository{
-		Url:               settings["url"].(string),
 		SshKey:            settings["sshkey"].(string),
 		SshPrivateKeyPass: settings["sshprivatekeypass"].(string),
 	}
