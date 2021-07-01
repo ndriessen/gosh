@@ -7,6 +7,7 @@ import (
 
 type GoshContext struct {
 	WorkingDir string
+	Version    string
 }
 
 var Context = &GoshContext{}
