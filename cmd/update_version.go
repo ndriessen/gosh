@@ -21,22 +21,22 @@ var (
 				log.Fatal(err, "You must specify --stage or --release")
 			}
 			if appList, err := LoadAppList(flag, value); err == nil {
-				if repo, err := git.NewDeploymentRepository("", false); err == nil {
-					if err = appList.UpdateVersion(appName, version); err == nil {
-						push := GetBoolFlag(cmd, "push", false)
-						if push {
+				if err = appList.UpdateVersion(appName, version); err == nil {
+					push := GetBoolFlag(cmd, "push", false)
+					if push {
+						if repo, err := git.NewDeploymentRepository("", false); err == nil {
 							err = repo.Push(GetStringFlag(cmd, "message", ""))
-						}
-						if err == nil {
-							log.Infof("Updated app %s to version %s for %s %s", appName, version, flag, value)
+							if err == nil {
+								log.Infof("Updated app %s to version %s for %s %s", appName, version, flag, value)
+							} else {
+								log.Fatal(err, "Error pushing updates to deployment repository")
+							}
 						} else {
-							log.Fatal(err, "Error pushing updates to deployment repository")
+							log.Fatal(err, "Error opening working dir as Git repository")
 						}
-					} else {
-						log.Fatal(err, "Error updating app %s to version %s for %s %s", appName, version, flag, value)
 					}
 				} else {
-					log.Fatal(err, "Error opening working dir as Git repository")
+					log.Fatal(err, "Error updating app %s to version %s for %s %s", appName, version, flag, value)
 				}
 			} else {
 				log.Fatal(err, "Error loading %s %s", flag, value)
