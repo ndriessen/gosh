@@ -203,7 +203,7 @@ func (repo *DeploymentRepository) Clone() error {
 		URL:               repo.url,
 		Auth:              repo.auth,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-		Depth:             1,
+		//Depth:             1, //causes Pull to fail...
 	}); err == nil {
 		repo.git = gitRepo
 		return nil
@@ -220,7 +220,7 @@ func (repo *DeploymentRepository) Pull() error {
 		return InvalidDeploymentRepoErr
 	}
 	if worktree, err := repo.git.Worktree(); err == nil {
-		if err = worktree.Pull(&git.PullOptions{Depth: 1, Auth: repo.auth}); err != nil && err != git.NoErrAlreadyUpToDate {
+		if err = worktree.Pull(&git.PullOptions{Auth: repo.auth, RemoteName: "origin"}); err != nil && err != git.NoErrAlreadyUpToDate {
 			return log.Errf(err, "Error updating working dir with remote")
 		}
 	} else {
