@@ -39,7 +39,7 @@ var TrendMinerPlugin = &TmImportPlugin{}
 
 func importVersions() error {
 	log.Info("Starting import of versions")
-	stages := map[string]string{"TESTED": "alpha", "PUBLISHED": "stable", "RELEASED": "released"}
+	stages := map[string]string{"TESTED": "tested", "PUBLISHED": "published", "RELEASED": "released"}
 	for oldStage, stageName := range stages {
 		stage := gitops.NewStage(stageName)
 		if !stage.Exists() {
@@ -93,7 +93,11 @@ func importReleases() error {
 				filtered := filterSlice(releases, year)
 				for _, v := range filtered {
 					sort.Strings(v)
-					recentReleases = append(recentReleases, v[len(v)-2:]...)
+					if len(v) > 2 {
+						recentReleases = append(recentReleases, v[len(v)-2:]...)
+					} else {
+						recentReleases = append(recentReleases, v...)
+					}
 				}
 			}
 			sort.Strings(recentReleases)
