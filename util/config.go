@@ -78,7 +78,14 @@ func newGitAuthConfig(authConfig authConfigDef) (AuthConfig, error) {
 
 type GoshConfig struct {
 	Auth                 AuthConfig
+	Output               OutputConfig
 	ArtifactRepositories map[string]map[string]string
+}
+
+type OutputConfig struct {
+	DefaultFormat      string `mapstructure:"default_format"`
+	VersionsKeySuffix  string `mapstructure:"versions_key_suffix"`
+	ArtifactsKeySuffix string `mapstructure:"artifacts_key_suffix"`
 }
 
 type authConfigDef struct {
@@ -93,18 +100,16 @@ var Config = &GoshConfig{}
 
 func InitializeConfig() {
 	v := viper.New()
-	projectConfigFile := filepath.Join(Context.WorkingDir, GoshConfigDir, GoshConfigFile)
-	if _, err := os.Stat(projectConfigFile); err == nil {
-		v.SetConfigFile(projectConfigFile)
-		if err := v.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-				log.Fatal(err, "Could not read configuration")
-			}
-		}
-	} else {
-		log.Debugf("no project specific config file found in %s, skipping...", Context.WorkingDir)
-	}
+	loadProjectSpecificConfig(v)
 	vpr := viper.New()
+	loadGlobalConfigAndMerge(vpr, v)
+	initOutputConfig(vpr)
+	initAuthConfig(vpr)
+	initArtifactRepositoryConfig(vpr)
+	log.Debugf("Loaded configuration %+v", Config)
+}
+
+func loadGlobalConfigAndMerge(vpr *viper.Viper, v *viper.Viper) {
 	vpr.SetEnvPrefix("GOSH")
 	vpr.AutomaticEnv()
 	vpr.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -122,6 +127,37 @@ func InitializeConfig() {
 			}
 		}
 	}
+}
+
+func loadProjectSpecificConfig(v *viper.Viper) {
+	projectConfigFile := filepath.Join(Context.WorkingDir, GoshConfigDir, GoshConfigFile)
+	if _, err := os.Stat(projectConfigFile); err == nil {
+		v.SetConfigFile(projectConfigFile)
+		if err := v.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				log.Fatal(err, "Could not read configuration")
+			}
+		}
+	} else {
+		log.Debugf("no project specific config file found in %s, skipping...", Context.WorkingDir)
+	}
+}
+
+func initArtifactRepositoryConfig(vpr *viper.Viper) {
+	Config.ArtifactRepositories = make(map[string]map[string]string, 0)
+	if vpr.IsSet("artifactrepositories") {
+		settings := vpr.Get("artifactrepositories").(map[string]interface{})
+		for name, urls := range settings {
+			result := map[string]string{}
+			for k, v := range urls.(map[string]interface{}) {
+				result[k] = v.(string)
+			}
+			Config.ArtifactRepositories[name] = result
+		}
+	}
+}
+
+func initAuthConfig(vpr *viper.Viper) {
 	//for backward compat
 	if vpr.IsSet("deploymentrepository") {
 		authConfig := SshAuthConfig{
@@ -146,16 +182,20 @@ func InitializeConfig() {
 		Config.Auth = auth
 		log.Debugf("Using %s auth config", authConfig.Type)
 	}
-	Config.ArtifactRepositories = make(map[string]map[string]string, 0)
-	if vpr.IsSet("artifactrepositories") {
-		settings := vpr.Get("artifactrepositories").(map[string]interface{})
-		for name, urls := range settings {
-			result := map[string]string{}
-			for k, v := range urls.(map[string]interface{}) {
-				result[k] = v.(string)
-			}
-			Config.ArtifactRepositories[name] = result
-		}
+}
+
+func initOutputConfig(vpr *viper.Viper) {
+	Config.Output = OutputConfig{
+		DefaultFormat:      "yaml",
+		VersionsKeySuffix:  "",
+		ArtifactsKeySuffix: "",
 	}
-	log.Debugf("Loaded configuration %+v", Config)
+	if vpr.IsSet("output") {
+		outputConfig := OutputConfig{
+			DefaultFormat:      vpr.GetString("output.default_format"),
+			VersionsKeySuffix:  vpr.GetString("output.versions_key_suffix"),
+			ArtifactsKeySuffix: vpr.GetString("output.artifacts_key_suffix"),
+		}
+		Config.Output = outputConfig
+	}
 }
