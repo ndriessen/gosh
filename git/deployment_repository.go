@@ -7,12 +7,15 @@ import (
 	"github.com/artdarek/go-unzip"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	http_transport "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/otiai10/copy"
 	"gosh/log"
 	"gosh/util"
 	"io"
 	"net/http"
+
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,13 +42,13 @@ var (
 )
 
 type DeploymentRepository struct {
-	url        string
-	publicKeys *ssh.PublicKeys
-	git        *git.Repository
+	url  string
+	auth transport.AuthMethod
+	git  *git.Repository
 }
 
 func isValid(repo *DeploymentRepository) bool {
-	return repo != nil && &repo.publicKeys != nil && &repo.git != nil
+	return repo != nil && &repo.auth != nil && &repo.git != nil
 }
 
 func (repo *DeploymentRepository) OpenWorkingDir() error {
@@ -78,10 +81,10 @@ func (repo *DeploymentRepository) InitFromTemplate() error {
 
 func NewDeploymentRepository(url string, cloneIfEmpty bool) (*DeploymentRepository, error) {
 	var repo *DeploymentRepository
-	if publicKeys, err := initSsh(util.Config); err == nil {
+	if authMethod, err := initAuth(util.Config); err == nil {
 		repo = &DeploymentRepository{
-			url:        url,
-			publicKeys: publicKeys,
+			url:  url,
+			auth: authMethod,
 		}
 	} else {
 		return nil, err
@@ -106,26 +109,42 @@ func NewDeploymentRepository(url string, cloneIfEmpty bool) (*DeploymentReposito
 	return repo, nil
 }
 
-func initSsh(config *util.GoshConfig) (*ssh.PublicKeys, error) {
-	sshKey := os.ExpandEnv(config.SshKey)
-	_, err := os.Stat(sshKey)
-	if err != nil {
-		return nil, log.Errf(err, "SSH key %s could not be read", config.SshKey)
-	}
-	var pwd = ""
-	if config.SshPrivateKeyPass != "" {
-		decoded, err := base64.StdEncoding.DecodeString(config.SshPrivateKeyPass)
+func initAuth(config *util.GoshConfig) (transport.AuthMethod, error) {
+
+	switch config.Auth.Type() {
+	case util.BasicAuth:
+		return &http_transport.BasicAuth{
+			Username: config.Auth.(util.BasicAuthConfig).User,
+			Password: decodeSecret(config.Auth.(util.BasicAuthConfig).Pass),
+		}, nil
+	case util.SshKey:
+		sshKey := os.ExpandEnv(config.Auth.(util.SshAuthConfig).PrivateKeyFile)
+		_, err := os.Stat(sshKey)
 		if err != nil {
-			return nil, log.Errf(err, "Unable to decode Base64 private key password from config for key %s", config.SshKey)
+			return nil, log.Errf(err, "SSH key %s could not be read", sshKey)
+		}
+		encodedPass := config.Auth.(util.SshAuthConfig).PrivateKeyPass
+		pwd := decodeSecret(encodedPass)
+		publicKeys, err := ssh.NewPublicKeysFromFile("git", sshKey, pwd)
+		if err != nil {
+			return nil, log.Errf(err, "Unable to load and decrypt SSH keys for key %s", sshKey)
+		}
+		return publicKeys, nil
+	}
+	return nil, errors.New("unknown auth type")
+}
+
+func decodeSecret(encodedPass string) string {
+	if encodedPass != "" {
+		decoded, err := base64.StdEncoding.DecodeString(encodedPass)
+		if err != nil {
+			log.Warn(err, "Unable to decode Base64 encoded password from config, handling as plain text")
+			return encodedPass
 		}
 		//for some reason it decodes a newline at the end, or the MacOS base64 encoding adds one...
-		pwd = strings.TrimSuffix(string(decoded), "\n")
+		return strings.TrimSuffix(string(decoded), "\n")
 	}
-	publicKeys, err := ssh.NewPublicKeysFromFile("git", sshKey, pwd)
-	if err != nil {
-		return nil, log.Errf(err, "Unable to load and decrypt SSH keys for key %s", config.SshKey)
-	}
-	return publicKeys, nil
+	return encodedPass
 }
 
 func (repo *DeploymentRepository) openWorkingDir() error {
@@ -176,9 +195,10 @@ func (repo *DeploymentRepository) Clone() error {
 		return WorkingDirNotEmptyErr
 	}
 	log.Infof("Cloning deployment repo %s into %s", repo.url, util.Context.WorkingDir)
+
 	if gitRepo, err := git.PlainClone(util.Context.WorkingDir, false, &git.CloneOptions{
 		URL:               repo.url,
-		Auth:              repo.publicKeys,
+		Auth:              repo.auth,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 		Depth:             1,
 	}); err == nil {
@@ -197,7 +217,7 @@ func (repo *DeploymentRepository) Pull() error {
 		return InvalidDeploymentRepoErr
 	}
 	if worktree, err := repo.git.Worktree(); err == nil {
-		if err = worktree.Pull(&git.PullOptions{Depth: 1, Auth: repo.publicKeys}); err != nil && err != git.NoErrAlreadyUpToDate {
+		if err = worktree.Pull(&git.PullOptions{Depth: 1, Auth: repo.auth}); err != nil && err != git.NoErrAlreadyUpToDate {
 			return log.Errf(err, "Error updating working dir with remote")
 		}
 	} else {
@@ -229,7 +249,7 @@ func (repo *DeploymentRepository) Push(msg string) error {
 		commitObject, _ := repo.git.CommitObject(commit)
 		log.Debugf("commit: %+v", commitObject)
 
-		err = repo.git.Push(&git.PushOptions{Auth: repo.publicKeys})
+		err = repo.git.Push(&git.PushOptions{Auth: repo.auth})
 		return err
 	} else {
 		return log.Errf(err, "error pushing changes")
