@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"gosh/list"
 	"gosh/log"
+	"gosh/util"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 			}
 			if appList, err := LoadAppList(flag, value); err == nil {
 				if artifacts, err := appList.GetArtifacts(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0), "maven"); err == nil {
-					if data, err := list.Render(GetStringFlag(cmd, OutputFlag, list.DefaultOutputFormat), artifacts); err == nil {
+					if data, err := list.Render(GetStringFlag(cmd, OutputFlag, ""), artifacts, util.Config.Output.ArtifactsKeySuffix); err == nil {
 						fmt.Println(data)
 					} else {
 						log.Fatal(err, "Could not list versions")

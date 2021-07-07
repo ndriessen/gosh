@@ -65,6 +65,23 @@ func (suite *ConfigTestSuite) TestInitializeConfig_BasicAuth_Env() {
 	r.Equal("my-pass", auth.Pass)
 }
 
+func (suite *ConfigTestSuite) TestInitializeOutputConfig_ConfigFile() {
+	contents := []byte(`
+Output:
+  default_format: properties
+  versions_key_suffix: version
+`)
+	r := suite.Require()
+	err := os.WriteFile(filepath.Join(suite.homedir, ".gosh", "config.yml"), contents, 0644)
+	if err != nil {
+		r.Fail("unable to init test, cannot create ~/.gosh/config.yml file")
+	}
+	InitializeConfig()
+	r.Equal("properties", Config.Output.DefaultFormat)
+	r.Equal("version", Config.Output.VersionsKeySuffix)
+	r.Equal("", Config.Output.ArtifactsKeySuffix)
+}
+
 func (suite *ConfigTestSuite) TestInitializeConfig_SshAuth_ConfigFile() {
 	contents := []byte(`
 Auth:
