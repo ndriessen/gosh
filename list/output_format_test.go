@@ -22,7 +22,7 @@ func (suite *OutputFormatSuite) SetupSuite() {
 }
 
 func (suite *OutputFormatSuite) TestRenderUnsupportedOutputFormat() {
-	output, err := Render("unsupported", suite.versions)
+	output, err := Render("unsupported", suite.versions, "")
 	r := suite.Require()
 	r.Empty(output)
 	r.NotNil(err)
@@ -30,7 +30,7 @@ func (suite *OutputFormatSuite) TestRenderUnsupportedOutputFormat() {
 }
 
 func (suite *OutputFormatSuite) TestRenderYaml() {
-	output, err := Render("yaml", suite.versions)
+	output, err := Render("yaml", suite.versions, "")
 	r := suite.Require()
 	r.NotEmpty(output)
 	r.Nil(err)
@@ -42,7 +42,7 @@ app3: 3.0.0
 }
 
 func (suite *OutputFormatSuite) TestRenderProperties() {
-	output, err := Render("properties", suite.versions)
+	output, err := Render("properties", suite.versions, "version")
 	r := suite.Require()
 	r.NotEmpty(output)
 	r.Nil(err)
