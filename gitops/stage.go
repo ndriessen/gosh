@@ -26,7 +26,7 @@ func (stage *Stage) setInitialized() {
 }
 
 func NewStage(name string) *Stage {
-	return &Stage{Name: name, Versions: map[string]string{}}
+	return &Stage{Name: strings.ToLower(name), Versions: map[string]string{}}
 }
 
 func (stage *Stage) UpdateVersion(appName string, version string) error {
