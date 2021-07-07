@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 	"gosh/list"
 	"gosh/log"
-	"gosh/util"
 )
 
 var (
@@ -23,9 +22,9 @@ var (
 			}
 			if appList, err := LoadAppList(flag, value); err == nil {
 				if data, err := list.Render(
-					GetStringFlag(cmd, OutputFlag, ""),
+					GetStringFlag(cmd, OutputFlag, list.DefaultOutputFormat),
 					appList.GetVersions(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0)),
-					util.Config.Output.VersionsKeySuffix,
+					"version",
 				); err == nil {
 					fmt.Print(data)
 				} else {

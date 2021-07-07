@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"gosh/log"
-	"gosh/util"
 	"sort"
 )
 
@@ -31,12 +30,6 @@ func init() {
 }
 
 func Render(format string, list map[string]string, keySuffix string) (string, error) {
-	if format == "" {
-		format = util.Config.Output.DefaultFormat
-		if format == "" {
-			format = DefaultOutputFormat
-		}
-	}
 	if format, exists := outputFormats[format]; exists {
 		return format.Render(list, keySuffix)
 	}
@@ -68,7 +61,7 @@ type PropertiesListOutputFormat struct{}
 
 func (f *PropertiesListOutputFormat) Render(list map[string]string, keySuffix string) (string, error) {
 	keys := make([]string, 0)
-	for k := range list {
+	for k, _ := range list {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
