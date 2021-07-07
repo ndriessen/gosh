@@ -7,6 +7,7 @@ import (
 	"gosh/log"
 	"gosh/util"
 	"sort"
+	"strings"
 )
 
 const DefaultOutputFormat = "yaml"
@@ -80,5 +81,5 @@ func (f *PropertiesListOutputFormat) Render(list map[string]string, keySuffix st
 			data += fmt.Sprintf("%s=%s\n", k, list[k])
 		}
 	}
-	return data, nil
+	return strings.TrimSuffix(data, "\n"), nil
 }
