@@ -24,6 +24,7 @@ var (
 				if data, err := list.Render(
 					GetStringFlag(cmd, OutputFlag, list.DefaultOutputFormat),
 					appList.GetVersions(GetStringFlag(cmd, GroupFlag, ""), GetArg(args, 0)),
+					"version",
 				); err == nil {
 					fmt.Print(data)
 				} else {
