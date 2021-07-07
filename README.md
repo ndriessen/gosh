@@ -2,6 +2,7 @@
 
 ![Build](https://github.com/ndriessen/gosh/actions/workflows/build.yml/badge.svg?branch=master)
 ![CodeQL](https://github.com/ndriessen/gosh/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ndriessen/gosh)](https://goreportcard.com/report/github.com/ndriessen/gosh)
 
 Gosh is an opinionated way of implementing a GItOps based deployment flow.
 
