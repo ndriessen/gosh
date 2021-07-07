@@ -55,7 +55,7 @@ func (auth SshAuthConfig) Type() AuthType {
 	return SshKey
 }
 
-func newGitAuthConfig(authConfig *authConfigDef) (AuthConfig, error) {
+func newGitAuthConfig(authConfig authConfigDef) (AuthConfig, error) {
 	t, err := newAuthType(authConfig.Type)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func InitializeConfig() {
 	}
 	//for backward compat
 	if vpr.IsSet("deploymentrepository") {
-		authConfig := &SshAuthConfig{
+		authConfig := SshAuthConfig{
 			PrivateKeyFile: os.ExpandEnv(vpr.GetString("deploymentrepository.sshkey")),
 			PrivateKeyPass: vpr.GetString("deploymentrepository.sshprivatekeypass"),
 		}
@@ -132,7 +132,7 @@ func InitializeConfig() {
 	}
 	//new config properties override the deprecated ones
 	if vpr.IsSet("auth.type") {
-		authConfig := &authConfigDef{
+		authConfig := authConfigDef{
 			Type:           vpr.GetString("auth.type"),
 			User:           vpr.GetString("auth.user"),
 			Pass:           vpr.GetString("auth.pass"),

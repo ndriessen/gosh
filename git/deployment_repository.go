@@ -90,6 +90,7 @@ func NewDeploymentRepository(url string, cloneIfEmpty bool) (*DeploymentReposito
 		return nil, err
 	}
 	if isDirectoryEmpty(util.Context.WorkingDir) {
+		log.Debugf("Working directory %s is empty", util.Context.WorkingDir)
 		if cloneIfEmpty {
 			if err := repo.Clone(); err != nil {
 				return nil, err
@@ -98,6 +99,7 @@ func NewDeploymentRepository(url string, cloneIfEmpty bool) (*DeploymentReposito
 			log.Fatal(errors.New("your working directory is empty, please initialize it first using gosh init"), "Empty working directory")
 		}
 	} else {
+		log.Debugf("Working directory %s is not empty, opening as GIT repo", util.Context.WorkingDir)
 		if err := repo.OpenWorkingDir(); err != nil {
 			return nil, err
 		}
@@ -161,14 +163,12 @@ func (repo *DeploymentRepository) Initialize() error {
 func (repo *DeploymentRepository) isValidRepository() bool {
 	if _, err := os.Stat(filepath.Join(util.Context.WorkingDir, ".git")); err == nil {
 		if _, err = os.Stat(filepath.Join(util.Context.WorkingDir, "inventory", "classes")); err == nil {
-			if _, err = os.Stat(filepath.Join(util.Context.WorkingDir, "inventory", "targets")); err == nil {
-				if repo.git != nil {
-					if remotes, err := repo.git.Remotes(); err == nil {
-						for _, remote := range remotes {
-							for _, url := range remote.Config().URLs {
-								if strings.ToLower(url) == strings.ToLower(repo.url) {
-									return true
-								}
+			if repo.git != nil {
+				if remotes, err := repo.git.Remotes(); err == nil {
+					for _, remote := range remotes {
+						for _, url := range remote.Config().URLs {
+							if strings.ToLower(url) == strings.ToLower(repo.url) {
+								return true
 							}
 						}
 					}
@@ -186,6 +186,9 @@ func isDirectoryEmpty(path string) bool {
 				return true
 			}
 		}
+	} else {
+		log.Debugf("Working dir %s does not exist, creating...", path)
+		_ = os.MkdirAll(path, 0755)
 	}
 	return false
 }
