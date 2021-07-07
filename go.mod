@@ -9,11 +9,11 @@ require (
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
-	github.com/otiai10/copy v1.6.0 // indirect
+	github.com/otiai10/copy v1.6.0
 	github.com/rs/zerolog v1.22.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/cobra v1.1.3
-	github.com/spf13/viper v1.7.1
+	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
