@@ -112,7 +112,9 @@ func NewDeploymentRepository(url string, cloneIfEmpty bool) (*DeploymentReposito
 }
 
 func initAuth(config *util.GoshConfig) (transport.AuthMethod, error) {
-
+	if config.Auth == nil {
+		return nil, errors.New("no auth configuration provided for GIT")
+	}
 	switch config.Auth.Type() {
 	case util.BasicAuth:
 		return &http_transport.BasicAuth{
