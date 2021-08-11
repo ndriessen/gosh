@@ -30,7 +30,7 @@ jobs:
           go vet -json -c=3 . > vet-results.json
 
       - name: Run testing
-        run: go test -json ./... > test-results.json
+        run: go clean -testcache ./... && go test -json ./... > test-results.json
 
       - name: Upload Reports
         uses: actions/upload-artifact@v2
