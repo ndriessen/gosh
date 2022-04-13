@@ -13,10 +13,7 @@ require (
 	github.com/rs/zerolog v1.24.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/cobra v1.2.1
-	github.com/spf13/viper v1.8.1
-	github.com/stretchr/testify v1.7.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
-	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
+	github.com/spf13/viper v1.11.0
+	github.com/stretchr/testify v1.7.1
 	gopkg.in/yaml.v2 v2.4.0
 )
